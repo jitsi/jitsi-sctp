@@ -1,0 +1,23 @@
+<assembly>
+    <!-- Dependent projects will use this id as the classifier to match this assembly -->
+    <id>libs</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>usrsctp/usrsctplib/.libs</directory>
+            <includes/>
+            <outputDirectory>lib</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>usrsctp/usrsctplib</directory>
+            <excludes>
+                <exclude>.libs/**</exclude>
+                <exclude>.deps/**</exclude>
+            </excludes>
+            <includes/>
+            <outputDirectory>include</outputDirectory>
+        </fileSet>
+    </fileSets>
+</assembly>

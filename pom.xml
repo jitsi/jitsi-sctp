@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.jitsi</groupId>
+    <artifactId>sctp4j</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <profiles>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <compiler>gcc</compiler>
+                <os>darwin</os>
+            </properties>
+        </profile>
+    </profiles>
+
+    <modules>
+        <module>usrsctp</module>
+    </modules>
+
+    <!--<build>-->
+        <!--<plugins>-->
+            <!--<plugin>-->
+                <!--&lt;!&ndash; Use exec plugin to call make, to build or clean library for Linux	&ndash;&gt;-->
+                <!--<groupId>org.codehaus.mojo</groupId>-->
+                <!--<artifactId>exec-maven-plugin</artifactId>-->
+                <!--<version>1.6.0</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--&lt;!&ndash; make all in the Maven compile phase &ndash;&gt;-->
+                        <!--<id>buildlib</id>-->
+                        <!--<phase>compile</phase>-->
+                        <!--<goals><goal>exec</goal></goals>-->
+                        <!--<configuration>-->
+                            <!--<workingDirectory>src/native/usrsctp</workingDirectory>-->
+                            <!--<executable>make</executable>-->
+                            <!--<arguments>-->
+                                <!--<argument>all</argument>-->
+                            <!--</arguments>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                    <!--<execution>-->
+                        <!--&lt;!&ndash; Make clean in the Maven clean phase &ndash;&gt;-->
+                        <!--<id>cleanlib</id>-->
+                        <!--<phase>clean</phase>-->
+                        <!--<goals><goal>exec</goal></goals>-->
+                        <!--<configuration>-->
+                            <!--<workingDirectory>src/native/usrsctp</workingDirectory>-->
+                            <!--<executable>make</executable>-->
+                            <!--<arguments>-->
+                                <!--<argument>clean</argument>-->
+                            <!--</arguments>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-compiler-plugin</artifactId>-->
+                <!--<version>3.8.0</version>-->
+                <!--<configuration>-->
+                    <!--<source>1.8</source>-->
+                    <!--<target>1.8</target>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
+            <!--<plugin>-->
+                <!--<groupId>org.apache.felix</groupId>-->
+                <!--<artifactId>maven-bundle-plugin</artifactId>-->
+                <!--<version>4.1.0</version>-->
+                <!--<configuration>-->
+                    <!--<instructions>-->
+                        <!--<Bundle-NativeCode>-->
+                            <!--src/native/libjnsctp.jnilib-->
+                        <!--</Bundle-NativeCode>-->
+                    <!--</instructions>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
+            <!--&lt;!&ndash;<plugin>&ndash;&gt;-->
+                <!--&lt;!&ndash;<groupId>org.codehaus.mojo</groupId>&ndash;&gt;-->
+                <!--&lt;!&ndash;<artifactId>native-maven-plugin</artifactId>&ndash;&gt;-->
+                <!--&lt;!&ndash;<version>1.0-alpha-9</version>&ndash;&gt;-->
+                <!--&lt;!&ndash;<extensions>true</extensions>&ndash;&gt;-->
+                <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
+                    <!--&lt;!&ndash;&lt;!&ndash; Generate the c header from the Java JNI file &ndash;&gt;&ndash;&gt;-->
+                    <!--&lt;!&ndash;<javahClassNames>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<javahClassName>org.jitsi_modified.sctp4j.Sctp</javahClassName>&ndash;&gt;-->
+                    <!--&lt;!&ndash;</javahClassNames>&ndash;&gt;-->
+
+                    <!--&lt;!&ndash;&lt;!&ndash; Compile the JNI c file &ndash;&gt;&ndash;&gt;-->
+                    <!--&lt;!&ndash;<compilerExecutable>${compiler}</compilerExecutable>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<javahOS>${os}</javahOS>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<sources>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<source>&ndash;&gt;-->
+                            <!--&lt;!&ndash;<directory>target/native/javah</directory>&ndash;&gt;-->
+                            <!--&lt;!&ndash;&lt;!&ndash;<includes>&ndash;&gt;&ndash;&gt;-->
+                                <!--&lt;!&ndash;&lt;!&ndash;<include>**/.*h</include>&ndash;&gt;&ndash;&gt;-->
+                            <!--&lt;!&ndash;&lt;!&ndash;</includes>&ndash;&gt;&ndash;&gt;-->
+                        <!--&lt;!&ndash;</source>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<source>&ndash;&gt;-->
+                            <!--&lt;!&ndash;<directory>src/native/usrsctp/usrsctplib/</directory>&ndash;&gt;-->
+                        <!--&lt;!&ndash;</source>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<source>&ndash;&gt;-->
+                            <!--&lt;!&ndash;<directory>src/native</directory>&ndash;&gt;-->
+                            <!--&lt;!&ndash;<fileNames>&ndash;&gt;-->
+                                <!--&lt;!&ndash;<fileName>org_jitsi_modified_sctp4j_Sctp.c</fileName>&ndash;&gt;-->
+                            <!--&lt;!&ndash;</fileNames>&ndash;&gt;-->
+                        <!--&lt;!&ndash;</source>&ndash;&gt;-->
+                    <!--&lt;!&ndash;</sources>&ndash;&gt;-->
+
+                    <!--&lt;!&ndash;<compilerStartOptions>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<compilerStartOption>-fPIC</compilerStartOption>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<compilerStartOption>-O2</compilerStartOption>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<compilerStartOption>-std=c99</compilerStartOption>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<compilerStartOption>-Wall</compilerStartOption>&ndash;&gt;-->
+                    <!--&lt;!&ndash;</compilerStartOptions>&ndash;&gt;-->
+
+                    <!--&lt;!&ndash;&lt;!&ndash; Link &ndash;&gt;&ndash;&gt;-->
+                    <!--&lt;!&ndash;<linkerStartOptions>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<linkerStartOption>-lpthread</linkerStartOption>&ndash;&gt;-->
+                        <!--&lt;!&ndash;<linkerStartOption>-shared</linkerStartOption>&ndash;&gt;-->
+                    <!--&lt;!&ndash;</linkerStartOptions>&ndash;&gt;-->
+
+                <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
+            <!--&lt;!&ndash;</plugin>&ndash;&gt;-->
+        <!--</plugins>-->
+    <!--</build>-->
+
+
+
+</project>
