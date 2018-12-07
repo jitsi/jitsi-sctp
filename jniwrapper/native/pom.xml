@@ -59,6 +59,17 @@
                 <artifactId>native-maven-plugin</artifactId>
                 <version>1.0-alpha-9</version>
                 <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <id>java-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>javah</goal>
+                            <goal>compile</goal>
+                            <goal>link</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
                     <compilerProvider>generic</compilerProvider>
                     <compilerStartOptions>

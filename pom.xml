@@ -26,6 +26,8 @@
 
     <modules>
         <module>usrsctp</module>
+        <module>jniwrapper</module>
+        <module>sctp</module>
     </modules>
 
     <!--<build>-->

@@ -35,9 +35,15 @@
         <usrsctp_dir>usrsctp</usrsctp_dir>
     </properties>
 
-    <!-- The code below will bootstrap, configure and make the usrsctp library.  Configure options can be set below
-     in the configure command.  Assumes usrsctp has been cloned to src/native/usrsctp.  NOTE that in order to access
-     the zip file with the dependencies, you must 'mvn install' this module -->
+    <!-- This module handles the following:
+    1) run ./bootstrap in usrsctp
+    2) run ./configure (with the option below) in usrsctp
+    3) run make in usrsctp
+    4) assemble the built libs and headers into a zip file that can be depended on by others (see the jniwrapper-native
+    module)
+    It assumes:
+    1) A checkout of the usrsctp src has been done within src/native/usrsctp (i.e. after clone src/native/usrsctp/usrsctp
+    will exist) -->
     <build>
         <plugins>
             <plugin>
@@ -46,40 +52,40 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <executions>
-                    <!--<execution>-->
-                        <!--<id>bootstrap</id>-->
-                        <!--<phase>compile</phase>-->
-                        <!--<goals><goal>exec</goal></goals>-->
-                        <!--<configuration>-->
-                            <!--<workingDirectory>${usrsctp_dir}</workingDirectory>-->
-                            <!--<executable>./bootstrap</executable>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                    <!--<execution>-->
-                        <!--<id>configure</id>-->
-                        <!--<phase>compile</phase>-->
-                        <!--<goals><goal>exec</goal></goals>-->
-                        <!--<configuration>-->
-                            <!--<workingDirectory>${usrsctp_dir}</workingDirectory>-->
-                            <!--<executable>./configure</executable>-->
-                            <!--<arguments>-->
-                                <!--<argument>&#45;&#45;with-pic</argument>-->
-                            <!--</arguments>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                    <!--<execution>-->
-                        <!--&lt;!&ndash; Make all in the Maven compile phase &ndash;&gt;-->
-                        <!--<id>buildlib</id>-->
-                        <!--<phase>compile</phase>-->
-                        <!--<goals><goal>exec</goal></goals>-->
-                        <!--<configuration>-->
-                            <!--<workingDirectory>${usrsctp_dir}</workingDirectory>-->
-                            <!--<executable>make</executable>-->
-                            <!--<arguments>-->
-                                <!--<argument>all</argument>-->
-                            <!--</arguments>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
+                    <execution>
+                        <id>bootstrap</id>
+                        <phase>compile</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <workingDirectory>${usrsctp_dir}</workingDirectory>
+                            <executable>./bootstrap</executable>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>configure</id>
+                        <phase>compile</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <workingDirectory>${usrsctp_dir}</workingDirectory>
+                            <executable>./configure</executable>
+                            <arguments>
+                                <argument>--with-pic</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- Make all in the Maven compile phase -->
+                        <id>buildlib</id>
+                        <phase>compile</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <workingDirectory>${usrsctp_dir}</workingDirectory>
+                            <executable>make</executable>
+                            <arguments>
+                                <argument>all</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                     <execution>
                         <!-- Make clean in the Maven clean phase -->
                         <id>cleanlib</id>
