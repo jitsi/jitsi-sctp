@@ -7,7 +7,14 @@ import java.io.IOException;
 public class SctpJni {
     static {
         try {
-            NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
+            String os = System.getProperty("os.name");
+            if (os.toLowerCase().contains("mac")) {
+                NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
+            } else if (os.toLowerCase().contains("linux")) {
+                NativeUtils.loadLibraryFromJar("/lib/linux/libjnisctp.jnilib");
+            } else {
+                System.out.println("Unsupported OS: " + os);
+            }
             System.out.println("SCTP lib loaded");
         } catch (IOException e) {
             e.printStackTrace();
