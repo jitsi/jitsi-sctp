@@ -81,12 +81,12 @@ static jmethodID Sctp_sendCb = 0;
 static JavaVM *Sctp_vm = NULL;
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    on_network_in
  * Signature: (J[BII)V
  */
 JNIEXPORT void JNICALL
-Java_org_jitsi_1modified_sctp4j_Sctp_on_1network_1in
+Java_org_jitsi_1modified_sctp4j_SctpJni_on_1network_1in
     (JNIEnv *env, jclass clazz, jlong ptr, jbyteArray pkt, jint off, jint len)
 {
     jbyte *pkt_;
@@ -103,12 +103,12 @@ Java_org_jitsi_1modified_sctp4j_Sctp_on_1network_1in
 }
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    usrsctp_accept
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1accept
+Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1accept
     (JNIEnv *env, jclass clazz, jlong ptr)
 {
     SctpSocket *sctpSocket;
@@ -128,12 +128,12 @@ Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1accept
 }
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    usrsctp_close
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1close
+Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1close
     (JNIEnv *env, jclass clazz, jlong ptr)
 {
     SctpSocket *sctpSocket;
@@ -144,12 +144,12 @@ Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1close
 }
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    usrsctp_connect
  * Signature: (JI)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1connect
+Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1connect
     (JNIEnv *env, jclass clazz, jlong ptr, jint remotePort)
 {
     // Try connecting the socket
@@ -160,37 +160,36 @@ Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1connect
 }
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    usrsctp_finish
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL
-Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1finish
+Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1finish
     (JNIEnv *env, jclass clazz)
 {
     return usrsctp_finish() ? JNI_TRUE : JNI_FALSE;
 }
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    usrsctp_init
  * Signature: (I)Z
  */
 JNIEXPORT jboolean JNICALL
-//Java_org_jitsi_1modified_sctp5j_Sctp_usrsctp_1init
-Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1init
+Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1init
     (JNIEnv *env, jclass clazz, jint port)
 {
     /*
      * First argument is udp_encapsulation_port which is not relevant to our
      * AF_CONN use of SCTP.
      */
-    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_Sctp.c calling init\n");
+    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c calling init\n");
     usrsctp_init((uint16_t) port, onSctpOutboundPacket, debugSctpPrintf);
 
-    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_Sctp.c about to set SCTP_DEBUG_ALL\n");
+    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c about to set SCTP_DEBUG_ALL\n");
 #ifdef SCTP_DEBUG
-    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_Sctp.c setting SCTP_DEBUG_ALL\n");
+    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c setting SCTP_DEBUG_ALL\n");
     //usrsctp_sysctl_set_sctp_debug_on(SCTP_DEBUG_ALL);
     usrsctp_sysctl_set_sctp_debug_on(SCTP_DEBUG_NONE);
 #endif
@@ -203,12 +202,12 @@ Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1init
 }
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    usrsctp_listen
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1listen
+Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1listen
     (JNIEnv *env, jclass clazz, jlong ptr)
 {
     SctpSocket *sctpSocket;
@@ -229,12 +228,12 @@ Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1listen
 }
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    usrsctp_send
  * Signature: (J[BIIZII)I
  */
 JNIEXPORT jint JNICALL
-Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1send
+Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1send
     (JNIEnv *env, jclass clazz, jlong ptr, jbyteArray data, jint off, jint len,
         jboolean ordered, jint sid, jint ppid)
 {
@@ -280,12 +279,12 @@ Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1send
 }
 
 /*
- * Class:     org_jitsi_modified_sctp4j_Sctp
+ * Class:     org_jitsi_modified_sctp4j_SctpJni
  * Method:    usrsctp_socket
  * Signature: (I)J
  */
 JNIEXPORT jlong JNICALL
-Java_org_jitsi_1modified_sctp4j_Sctp_usrsctp_1socket
+Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
     (JNIEnv *env, jclass clazz, jint localPort)
 {
     SctpSocket *sctpSocket;

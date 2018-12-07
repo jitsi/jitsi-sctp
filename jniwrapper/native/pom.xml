@@ -11,6 +11,9 @@
     <!-- This module is responsible for building the final usrsctp jni library: that is the one that will
      be loaded via System.loadLibrary(...) in the java code.  The library is placed in the 'target' output
      directory and will be named "libjnisctp.jnilib" -->
+    <!-- TODO: it'd be nice to explicitly distinguish the parts of the lifecycle, maybe: compile should create the lib
+     and then package would pull the lib from the prebuilt dir and build the jar (maybe this is already the case,
+     just document it? -->
     <parent>
         <groupId>org.jitsi</groupId>
         <artifactId>jniwrapper</artifactId>

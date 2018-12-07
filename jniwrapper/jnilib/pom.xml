@@ -4,6 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- This project represents the full bundle of the jni lib: it includes both the java file and the bundling
+     of the native libraries to be loaded by the java file.  If you wanted to write your own SCTP java library,
+     you would depend on this and use SctpJni to interact with the native usrsctp lib -->
+
     <groupId>org.jitsi</groupId>
     <artifactId>jnilib</artifactId>
     <version>1.0-SNAPSHOT</version>

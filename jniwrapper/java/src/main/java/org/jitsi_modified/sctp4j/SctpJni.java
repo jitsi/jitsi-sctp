@@ -8,6 +8,7 @@ public class SctpJni {
     static {
         try {
             NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
+            System.out.println("SCTP lib loaded");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -54,7 +55,7 @@ public class SctpJni {
      * @param port UDP encapsulation port.
      * @return <tt>true</tt> on success.
      */
-    private static native boolean usrsctp_init(int port);
+    static native boolean usrsctp_init(int port);
 
     /**
      * Makes socket passive.
