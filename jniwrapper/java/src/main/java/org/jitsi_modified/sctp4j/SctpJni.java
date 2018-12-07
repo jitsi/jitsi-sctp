@@ -9,15 +9,17 @@ public class SctpJni {
         try {
             String os = System.getProperty("os.name");
             if (os.toLowerCase().contains("mac")) {
+                System.out.println("SCTP JNI load: Mac OS detected");
                 NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
             } else if (os.toLowerCase().contains("linux")) {
+                System.out.println("SCTP JNI load: Linux OS detected");
                 NativeUtils.loadLibraryFromJar("/lib/linux/libjnisctp.jnilib");
             } else {
-                System.out.println("Unsupported OS: " + os);
+                throw new Exception("Unsupported OS: " + os);
             }
             System.out.println("SCTP lib loaded");
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Error loading native library: " + e);
         }
     }
     /**
