@@ -15,22 +15,6 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <profiles>
-        <profile>
-            <id>mac</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                </os>
-            </activation>
-            <properties>
-                <compiler>gcc</compiler>
-                <os>darwin</os>
-                <libextension>jnilib</libextension>
-            </properties>
-        </profile>
-    </profiles>
-
     <properties>
         <usrsctp_dir>usrsctp</usrsctp_dir>
     </properties>
