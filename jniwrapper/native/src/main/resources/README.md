@@ -1,0 +1,1 @@
+This directory contains prebuilt usrsctp jni libraries.  The maven targets DON'T put built libraries here automatically, it must be done manually.  This is intentional, as the libraries must be built for each platform ahead of time and then all put here to be deployed.

@@ -8,6 +8,9 @@
     <name>usrsctp JNI wrapper (native code)</name>
     <version>1.0-SNAPSHOT</version>
 
+    <!-- This module is responsible for building the final usrsctp jni library: that is the one that will
+     be loaded via System.loadLibrary(...) in the java code.  The library is placed in the 'target' output
+     directory and will be named "libjnisctp.jnilib" -->
     <parent>
         <groupId>org.jitsi</groupId>
         <artifactId>jniwrapper</artifactId>
@@ -115,7 +118,7 @@
                         <source>
                             <directory>src</directory>
                             <fileNames>
-                                <fileName>org_jitsi_modified_sctp4j_Sctp.c</fileName>
+                                <fileName>org_jitsi_modified_sctp4j_SctpJni.c</fileName>
                             </fileNames>
                         </source>
                         <source>
@@ -133,10 +136,23 @@
                             -lpthread
                         </linkerStartOption>
                     </linkerStartOptions>
-                    <linkerFinalName>libjnisctp</linkerFinalName>
+                    <linkerFinalName>libjnisctp-${os}-${os.arch}</linkerFinalName>
                     <linkerFinalNameExt>jnilib</linkerFinalNameExt>
                 </configuration>
             </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.felix</groupId>-->
+                <!--<artifactId>maven-bundle-plugin</artifactId>-->
+                <!--<version>4.1.0</version>-->
+                <!--<configuration>-->
+                    <!--<instructions>-->
+                        <!--<Bundle-NativeCode>-->
+                            <!--prebuilt/darwin/libjnisctp.jnilib;-->
+                            <!--osname=Mac OS X;processor=x86-64-->
+                        <!--</Bundle-NativeCode>-->
+                    <!--</instructions>-->
+                <!--</configuration>-->
+            <!--</plugin>-->
         </plugins>
     </build>
 

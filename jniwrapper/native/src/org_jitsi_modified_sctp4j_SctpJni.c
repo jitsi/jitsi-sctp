@@ -24,7 +24,7 @@
 #include <usrsctp.h>
 
 /* The name of the class which defines the callback methods. */
-#define SCTP_CLASSNAME "org/jitsi_modified/sctp4j/Sctp"
+#define SCTP_CLASSNAME "org/jitsi_modified/sctp4j/SctpJni"
 
 /**
  * Represents the <tt>struct socket</tt> instances initialized by our SCTP

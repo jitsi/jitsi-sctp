@@ -12,5 +12,6 @@
     <modules>
         <module>native</module>
         <module>java</module>
+        <module>jnilib</module>
     </modules>
 </project>

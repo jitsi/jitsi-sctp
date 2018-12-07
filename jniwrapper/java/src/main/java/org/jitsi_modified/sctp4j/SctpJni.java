@@ -1,9 +1,16 @@
 package org.jitsi_modified.sctp4j;
 
-public class SctpJni {
+import cz.adamh.utils.NativeUtils;
 
+import java.io.IOException;
+
+public class SctpJni {
     static {
-        System.loadLibrary("jnisctp");
+        try {
+            NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     /**
      * Passes network packet to native SCTP stack counterpart.
@@ -86,4 +93,65 @@ public class SctpJni {
     FIXME to be added?
     int usrsctp_shutdown(struct socket *so, int how);
     */
+
+    /**
+     * Method fired by native counterpart to notify about incoming data.
+     *
+     * @param socketAddr native socket pointer
+     * @param data buffer holding received data
+     * @param sid stream id
+     * @param ssn
+     * @param tsn
+     * @param ppid payload protocol identifier
+     * @param context
+     * @param flags
+     */
+    public static void onSctpInboundPacket(
+            long socketAddr, byte[] data, int sid, int ssn, int tsn, long ppid,
+            int context, int flags)
+    {
+        //TODO
+//        SctpSocket socket = sockets.get(Long.valueOf(socketAddr));
+//
+//        if(socket == null)
+//        {
+////            logger.error("No SctpSocket found for ptr: " + socketAddr);
+//        }
+//        else
+//        {
+//            socket.onSctpInboundPacket(
+//                    data, sid, ssn, tsn, ppid, context, flags);
+//        }
+    }
+
+    /**
+     * Method fired by native counterpart when SCTP stack wants to send
+     * network packet.
+     * @param socketAddr native socket pointer
+     * @param data buffer holding packet data
+     * @param tos type of service???
+     * @param set_df use IP don't fragment option
+     * @return 0 if the packet has been successfully sent or -1 otherwise.
+     */
+    public static int onSctpOutboundPacket(
+            long socketAddr, byte[] data, int tos, int set_df)
+    {
+//        //TODO
+//        // FIXME handle tos and set_df
+//
+//        SctpSocket socket = sockets.get(Long.valueOf(socketAddr));
+//        int ret;
+//
+//        if(socket == null)
+//        {
+//            ret = -1;
+////            logger.error("No SctpSocket found for ptr: " + socketAddr);
+//        }
+//        else
+//        {
+//            ret = socket.onSctpOut(data, tos, set_df);
+//        }
+//        return ret;
+        return 0;
+    }
 }
