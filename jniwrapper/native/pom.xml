@@ -8,12 +8,9 @@
     <name>usrsctp JNI wrapper (native code)</name>
     <version>1.0-SNAPSHOT</version>
 
-    <!-- This module is responsible for building the final usrsctp jni library: that is the one that will
+    <!-- This module is responsible for building the final usrsctp native library: that is the one that will
      be loaded via System.loadLibrary(...) in the java code.  The library is placed in the 'target' output
      directory and will be named "libjnisctp.jnilib" -->
-    <!-- TODO: it'd be nice to explicitly distinguish the parts of the lifecycle, maybe: compile should create the lib
-     and then package would pull the lib from the prebuilt dir and build the jar (maybe this is already the case,
-     just document it? -->
     <parent>
         <groupId>org.jitsi</groupId>
         <artifactId>jniwrapper</artifactId>
@@ -143,19 +140,6 @@
                     <linkerFinalNameExt>jnilib</linkerFinalNameExt>
                 </configuration>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.apache.felix</groupId>-->
-                <!--<artifactId>maven-bundle-plugin</artifactId>-->
-                <!--<version>4.1.0</version>-->
-                <!--<configuration>-->
-                    <!--<instructions>-->
-                        <!--<Bundle-NativeCode>-->
-                            <!--prebuilt/darwin/libjnisctp.jnilib;-->
-                            <!--osname=Mac OS X;processor=x86-64-->
-                        <!--</Bundle-NativeCode>-->
-                    <!--</instructions>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
         </plugins>
     </build>
 
