@@ -15,10 +15,6 @@
         <relativePath>..</relativePath>
     </parent>
 
-    <properties>
-        <usrsctp_dir>usrsctp</usrsctp_dir>
-    </properties>
-
     <!-- This module handles the following:
     1) run ./bootstrap in usrsctp
     2) run ./configure (with the option below) in usrsctp
@@ -28,63 +24,84 @@
     It assumes:
     1) A checkout of the usrsctp src has been done within src/native/usrsctp (i.e. after clone src/native/usrsctp/usrsctp
     will exist) -->
+
+    <properties>
+        <usrsctp_dir>usrsctp</usrsctp_dir>
+    </properties>
+
+    <!-- usrsctp is only bootstrap'd, configure'd and make'd if '-DbuildSctp' is passed -->
+    <profiles>
+        <profile>
+            <id>build usrsctp</id>
+            <activation>
+                <property>
+                    <name>buildSctp</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <!-- Use exec plugin to call make, to build or clean library for Linux	-->
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.6.0</version>
+                        <executions>
+                            <execution>
+                                <id>bootstrap</id>
+                                <phase>compile</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <workingDirectory>${usrsctp_dir}</workingDirectory>
+                                    <executable>./bootstrap</executable>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>configure</id>
+                                <phase>compile</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <workingDirectory>${usrsctp_dir}</workingDirectory>
+                                    <executable>./configure</executable>
+                                    <arguments>
+                                        <argument>--with-pic</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <!-- Make all in the Maven compile phase -->
+                                <id>buildlib</id>
+                                <phase>compile</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <workingDirectory>${usrsctp_dir}</workingDirectory>
+                                    <executable>make</executable>
+                                    <arguments>
+                                        <argument>all</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <!-- Make clean in the Maven clean phase -->
+                                <id>cleanlib</id>
+                                <phase>clean</phase>
+                                <goals><goal>exec</goal></goals>
+                                <configuration>
+                                    <workingDirectory>${usrsctp_dir}</workingDirectory>
+                                    <executable>make</executable>
+                                    <arguments>
+                                        <argument>clean</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
-            <plugin>
-                <!-- Use exec plugin to call make, to build or clean library for Linux	-->
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <id>bootstrap</id>
-                        <phase>compile</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <workingDirectory>${usrsctp_dir}</workingDirectory>
-                            <executable>./bootstrap</executable>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>configure</id>
-                        <phase>compile</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <workingDirectory>${usrsctp_dir}</workingDirectory>
-                            <executable>./configure</executable>
-                            <arguments>
-                                <argument>--with-pic</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <!-- Make all in the Maven compile phase -->
-                        <id>buildlib</id>
-                        <phase>compile</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <workingDirectory>${usrsctp_dir}</workingDirectory>
-                            <executable>make</executable>
-                            <arguments>
-                                <argument>all</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <!-- Make clean in the Maven clean phase -->
-                        <id>cleanlib</id>
-                        <phase>clean</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <workingDirectory>${usrsctp_dir}</workingDirectory>
-                            <executable>make</executable>
-                            <arguments>
-                                <argument>clean</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.0</version>
