@@ -11,6 +11,6 @@
 
     <modules>
         <module>native</module>
+        <module>java</module>
     </modules>
-
 </project>
