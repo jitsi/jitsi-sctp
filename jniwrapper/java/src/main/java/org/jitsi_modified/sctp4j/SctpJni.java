@@ -13,7 +13,7 @@ public class SctpJni {
                 NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
             } else if (os.toLowerCase().contains("linux")) {
                 System.out.println("SCTP JNI load: Linux OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/linux/libjnisctp.jnilib");
+                NativeUtils.loadLibraryFromJar("/lib/linux/libjnisctp.so");
             } else {
                 throw new Exception("Unsupported OS: " + os);
             }

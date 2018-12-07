@@ -105,7 +105,7 @@
                     <compilerProvider>generic</compilerProvider>
                     <compilerStartOptions>
                         <compilerStartOption>
-                            -fPIC -O -Wall -Itarget/native/javah
+                            -g -fPIC -std=c99 -O2 -Wall -Itarget/native/javah
                         </compilerStartOption>
                     </compilerStartOptions>
 
@@ -130,12 +130,18 @@
 
                     <linkerStartOptions>
                         <linkerStartOption>
-                            -shared
                             -L${project.build.directory}/usrsctp-${project.version}/lib
-                            target/usrsctp-1.0-SNAPSHOT/lib/libusrsctp.a
-                            -lpthread
+                            -shared
                         </linkerStartOption>
                     </linkerStartOptions>
+                    <linkerEndOptions>
+                        <linkerEndOption>
+                            -Wl,-Bstatic
+                            -lusrsctp
+                            -Wl,-Bdynamic
+                            -lpthread
+                        </linkerEndOption>
+                    </linkerEndOptions>
                     <linkerFinalName>libjnisctp-${os}-${os.arch}</linkerFinalName>
                     <linkerFinalNameExt>jnilib</linkerFinalNameExt>
                 </configuration>
