@@ -153,7 +153,7 @@
                         <linkerEndOption>${linkEndOpts}</linkerEndOption>
                     </linkerEndOptions>
                     <linkerFinalName>libjnisctp-${os}-${os.arch}</linkerFinalName>
-                    <linkerFinalNameExt>jnilib</linkerFinalNameExt>
+                    <linkerFinalNameExt>${libextension}</linkerFinalNameExt>
                 </configuration>
             </plugin>
         </plugins>
