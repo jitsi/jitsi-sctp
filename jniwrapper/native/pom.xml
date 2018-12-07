@@ -30,6 +30,13 @@
                 <compiler>gcc</compiler>
                 <os>darwin</os>
                 <libextension>jnilib</libextension>
+                <linkStartOpts>
+                    -shared
+                    -L${project.build.directory}/usrsctp-${project.version}/lib
+                    target/usrsctp-1.0-SNAPSHOT/lib/libusrsctp.a
+                    -lpthread
+                </linkStartOpts>
+                <linkEndOpts></linkEndOpts>
             </properties>
         </profile>
         <profile>
@@ -37,12 +44,23 @@
             <activation>
                 <os>
                     <family>unix</family>
+                    <name>Linux</name>
                 </os>
             </activation>
             <properties>
                 <compiler>gcc</compiler>
                 <os>linux</os>
-                <libextension>jnilib</libextension>
+                <libextension>so</libextension>
+                <linkStartOpts>
+                     -L${project.build.directory}/usrsctp-${project.version}/lib
+                     -shared
+                </linkStartOpts>
+                <linkEndOpts>
+                    -Wl,-Bstatic
+                    -lusrsctp
+                    -Wl,-Bdynamic
+                    -lpthread
+                </linkEndOpts>
             </properties>
         </profile>
     </profiles>
@@ -129,18 +147,10 @@
                     </sources>
 
                     <linkerStartOptions>
-                        <linkerStartOption>
-                            -L${project.build.directory}/usrsctp-${project.version}/lib
-                            -shared
-                        </linkerStartOption>
+                        <linkerStartOption>${linkStartOpts}</linkerStartOption>
                     </linkerStartOptions>
                     <linkerEndOptions>
-                        <linkerEndOption>
-                            -Wl,-Bstatic
-                            -lusrsctp
-                            -Wl,-Bdynamic
-                            -lpthread
-                        </linkerEndOption>
+                        <linkerEndOption>${linkEndOpts}</linkerEndOption>
                     </linkerEndOptions>
                     <linkerFinalName>libjnisctp-${os}-${os.arch}</linkerFinalName>
                     <linkerFinalNameExt>jnilib</linkerFinalNameExt>
