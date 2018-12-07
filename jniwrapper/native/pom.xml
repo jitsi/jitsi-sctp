@@ -38,7 +38,7 @@
             </activation>
             <properties>
                 <compiler>gcc</compiler>
-                <os>darwin</os>
+                <os>linux</os>
                 <libextension>jnilib</libextension>
             </properties>
         </profile>
