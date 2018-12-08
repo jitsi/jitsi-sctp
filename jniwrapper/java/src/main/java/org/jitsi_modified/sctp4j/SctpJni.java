@@ -2,8 +2,6 @@ package org.jitsi_modified.sctp4j;
 
 import cz.adamh.utils.NativeUtils;
 
-import java.io.IOException;
-
 public class SctpJni {
     static {
         try {
@@ -29,7 +27,7 @@ public class SctpJni {
      * @param off the position in the buffer where packet data starts.
      * @param len packet data length.
      */
-    private static native void on_network_in(
+    public static native void on_network_in(
             long ptr,
             byte[] pkt, int off, int len);
 
@@ -37,13 +35,13 @@ public class SctpJni {
      * Waits for incoming connection.
      * @param ptr native socket pointer.
      */
-    static native boolean usrsctp_accept(long ptr);
+    public static native boolean usrsctp_accept(long ptr);
 
     /**
      * Closes SCTP socket.
      * @param ptr native socket pointer.
      */
-    private static native void usrsctp_close(long ptr);
+    public static native void usrsctp_close(long ptr);
 
     /**
      * Connects SCTP socket to remote socket on given SCTP port.
@@ -51,26 +49,26 @@ public class SctpJni {
      * @param remotePort remote SCTP port.
      * @return <tt>true</tt> if the socket has been successfully connected.
      */
-    static native boolean usrsctp_connect(long ptr, int remotePort);
+    public static native boolean usrsctp_connect(long ptr, int remotePort);
 
     /**
      * Disposes of the resources held by native counterpart.
      * @return <tt>true</tt> if stack successfully released resources.
      */
-    native private static boolean usrsctp_finish();
+    public static native boolean usrsctp_finish();
 
     /**
      * Initializes native SCTP counterpart.
      * @param port UDP encapsulation port.
      * @return <tt>true</tt> on success.
      */
-    static native boolean usrsctp_init(int port);
+    public static native boolean usrsctp_init(int port);
 
     /**
      * Makes socket passive.
      * @param ptr native socket pointer.
      */
-    static native void usrsctp_listen(long ptr);
+    public static native void usrsctp_listen(long ptr);
 
     /**
      * Sends given <tt>data</tt> on selected SCTP stream using given payload
@@ -85,7 +83,7 @@ public class SctpJni {
      * @param ppid payload protocol identifier
      * @return sent bytes count or <tt>-1</tt> in case of an error.
      */
-    static native int usrsctp_send(
+    public static native int usrsctp_send(
             long ptr,
             byte[] data, int off, int len,
             boolean ordered,
@@ -97,7 +95,7 @@ public class SctpJni {
      * @param localPort local SCTP socket port.
      * @return native socket pointer or 0 if operation failed.
      */
-    private static native long usrsctp_socket(int localPort);
+    public static native long usrsctp_socket(int localPort);
 
     /*
     FIXME to be added?
