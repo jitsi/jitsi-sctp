@@ -24,8 +24,8 @@ public class Sctp4jTest {
     public void basicLoop() throws InterruptedException, TimeoutException, ExecutionException {
         Sctp4j.init();
 
-        final SctpSocket2 server = Sctp4j.createSocket();
-        final SctpSocket2 client = Sctp4j.createSocket();
+        final SctpSocket server = Sctp4j.createSocket();
+        final SctpSocket client = Sctp4j.createSocket();
 
         server.outgoingDataSender = (data, offset, length) -> {
             new Thread(() -> {
@@ -64,7 +64,7 @@ public class Sctp4jTest {
             System.out.println();
         };
 
-        client.eventHandler = new SctpSocket2.SctpSocketEventHandler() {
+        client.eventHandler = new SctpSocket.SctpSocketEventHandler() {
             @Override
             public void onConnected() {
                 System.out.println("Client connected, sending data");

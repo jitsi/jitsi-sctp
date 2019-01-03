@@ -1,8 +1,7 @@
 package org.jitsi_modified.sctp4j.example;
 
 import org.jitsi_modified.sctp4j.Sctp4j;
-import org.jitsi_modified.sctp4j.SctpSocket2;
-import org.jitsi_modified.sctp4j.util.SctpParser;
+import org.jitsi_modified.sctp4j.SctpSocket;
 
 import java.io.IOException;
 import java.net.*;
@@ -22,7 +21,7 @@ public class Client {
 
         DatagramSocket socket = new DatagramSocket(localPort, localAddr);
 
-        final SctpSocket2 client = Sctp4j.createSocket();
+        final SctpSocket client = Sctp4j.createSocket();
         CompletableFuture<Boolean> dataSent = new CompletableFuture<>();
         client.outgoingDataSender = (data, offset, length) -> {
             DatagramPacket packet = new DatagramPacket(data, offset, length, remoteAddr, remotePort);
@@ -54,7 +53,7 @@ public class Client {
         client.connect();
 
 
-        client.eventHandler = new SctpSocket2.SctpSocketEventHandler() {
+        client.eventHandler = new SctpSocket.SctpSocketEventHandler() {
             @Override
             public void onConnected() {
                 System.out.println("Client connected");

@@ -36,14 +36,14 @@ public class Sctp4j {
     /**
      * List of instantiated SctpSockets mapped by native pointer.
      */
-    private static final Map<Long, SctpSocket2> sockets
+    private static final Map<Long, SctpSocket> sockets
             = new ConcurrentHashMap<>();
 
     //TODO: if we do end up sticking with this (where we index by ptr
     // when handling calls from the stack, but by socket when handling
     // calls from java) maybe we want to maintain a bi-map or something
-    private static long getPtrFromSocket(SctpSocket2 socket) {
-        for (Map.Entry<Long, SctpSocket2> entry : sockets.entrySet()) {
+    private static long getPtrFromSocket(SctpSocket socket) {
+        for (Map.Entry<Long, SctpSocket> entry : sockets.entrySet()) {
             if (entry.getValue() == socket) {
                 return entry.getKey();
             }
@@ -52,7 +52,7 @@ public class Sctp4j {
     }
 
     private static void onSctpIncomingData(long socketAddr, byte[] data, int sid, int ssn, int tsn, long ppid, int context, int flags) {
-        SctpSocket2 socket = sockets.get(socketAddr);
+        SctpSocket socket = sockets.get(socketAddr);
         if (socket != null) {
             socket.onSctpIn(data, sid, ssn, tsn, ppid, context, flags);
         }
@@ -67,19 +67,19 @@ public class Sctp4j {
      * @return 0 if the packet was successfully sent, -1 otherwise
      */
     private static int onOutgoingSctpData(long socketAddr, byte[] data, int tos, int set_df) {
-        SctpSocket2 socket = sockets.get(socketAddr);
+        SctpSocket socket = sockets.get(socketAddr);
         if (socket != null) {
             return socket.onSctpOut(data, tos, set_df);
         }
         System.out.println("Sctp4j couldn't find socket to send data, returning -1");
         return -1;
     }
-    public static SctpSocket2 createSocket() {
+    public static SctpSocket createSocket() {
         long ptr = SctpJni.usrsctp_socket(DUMMY_PORT);
         if (ptr == 0) {
             return null;
         }
-        SctpSocket2 socket = new SctpSocket2(ptr);
+        SctpSocket socket = new SctpSocket(ptr);
         sockets.put(ptr, socket);
 
         return socket;
@@ -87,11 +87,10 @@ public class Sctp4j {
 
     /**
      * Starts a connection using the given socket.
-     * TODO: pretty sure this doesn't block until it fully connects
      * @param socket
      * @return
      */
-    public static boolean connect(SctpSocket2 socket) {
+    public static boolean connect(SctpSocket socket) {
         long ptr = getPtrFromSocket(socket);
         if (ptr != 0) {
             return SctpJni.usrsctp_connect(ptr, DUMMY_PORT);
@@ -99,7 +98,7 @@ public class Sctp4j {
         return false;
     }
 
-    public static int send(SctpSocket2 socket, ByteBuffer data, boolean ordered, int sid, int ppid) {
+    public static int send(SctpSocket socket, ByteBuffer data, boolean ordered, int sid, int ppid) {
         long ptr = getPtrFromSocket(socket);
         if (ptr != 0) {
             SctpJni.usrsctp_send(ptr, data.array(), data.arrayOffset(), data.limit(), ordered, sid, ppid);

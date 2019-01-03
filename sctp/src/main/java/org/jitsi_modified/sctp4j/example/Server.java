@@ -1,7 +1,7 @@
 package org.jitsi_modified.sctp4j.example;
 
 import org.jitsi_modified.sctp4j.Sctp4j;
-import org.jitsi_modified.sctp4j.SctpSocket2;
+import org.jitsi_modified.sctp4j.SctpSocket;
 
 import java.io.IOException;
 import java.net.*;
@@ -20,7 +20,7 @@ public class Server {
 
         DatagramSocket socket = new DatagramSocket(localPort, localAddr);
 
-        final SctpSocket2 server = Sctp4j.createSocket();
+        final SctpSocket server = Sctp4j.createSocket();
         server.outgoingDataSender = (data, offset, length) -> {
             DatagramPacket packet = new DatagramPacket(data, offset, length, remoteAddr, remotePort);
             try {

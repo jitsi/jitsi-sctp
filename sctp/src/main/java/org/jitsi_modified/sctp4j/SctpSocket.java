@@ -2,7 +2,7 @@ package org.jitsi_modified.sctp4j;
 
 import java.nio.ByteBuffer;
 
-public class SctpSocket2 {
+public class SctpSocket {
     public interface SctpSocketEventHandler {
         void onConnected();
         void onDisconnected();
@@ -27,7 +27,7 @@ public class SctpSocket2 {
      */
     public SctpDataCallback dataCallback;
 
-    public SctpSocket2(long ptr) {
+    public SctpSocket(long ptr) {
         this.ptr = ptr;
     }
 
