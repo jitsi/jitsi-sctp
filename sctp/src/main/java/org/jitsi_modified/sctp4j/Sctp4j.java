@@ -69,14 +69,11 @@ public class Sctp4j {
     private static int onOutgoingSctpData(long socketAddr, byte[] data, int tos, int set_df) {
         SctpSocket2 socket = sockets.get(socketAddr);
         if (socket != null) {
-            int res = socket.onSctpOut(data, tos, set_df);
-            System.out.println("Sctp4j found socket, it returned: " + res);
-            return res;
+            return socket.onSctpOut(data, tos, set_df);
         }
         System.out.println("Sctp4j couldn't find socket to send data, returning -1");
         return -1;
     }
-
     public static SctpSocket2 createSocket() {
         long ptr = SctpJni.usrsctp_socket(DUMMY_PORT);
         if (ptr == 0) {
