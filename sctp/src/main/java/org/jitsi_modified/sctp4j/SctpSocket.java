@@ -13,10 +13,13 @@ public class SctpSocket {
     private long ptr;
 
     /**
-     * The link used to send network packets.
+     * Used to send network packets.
      */
     public SctpDataSender outgoingDataSender;
 
+    /**
+     * Handler to be notified of socket events (connected, disconnected)
+     */
     public SctpSocketEventHandler eventHandler;
 
     private boolean connected = false;
@@ -45,11 +48,6 @@ public class SctpSocket {
      * @param notification the <tt>SctpNotification</tt> triggered.
      */
     private synchronized void onNotification(SctpNotification notification) {
-        //TODO: my thought at this point is that we should just handle these events in
-        // the socket, as this is the way the user interacts with SCTP.  i don't think
-        // we need to expose these things...just to let the user know when things are connected
-        // (they can start using it) and if an error occurs that prevents it from being able
-        // to be used
         System.out.println("Received SCTP notification " + notification);
         if (notification instanceof SctpNotification.AssociationChange) {
             SctpNotification.AssociationChange associationChange = (SctpNotification.AssociationChange)notification;
@@ -178,6 +176,10 @@ public class SctpSocket {
         return -1;
     }
 
+    /**
+     * Starts a connection on this socket (if it's open).  See {@link Sctp4j#connect(SctpSocket)}
+     * @return true if the connection has started, false otherwise
+     */
     public synchronized boolean connect() {
         if (socketOpen()) {
             return Sctp4j.connect(this);
@@ -187,7 +189,7 @@ public class SctpSocket {
 
     /**
      * Send SCTP app data through the stack and out
-     * @return
+     * @return the number of bytes sent or -1 on error
      */
     public synchronized int send(ByteBuffer data, boolean ordered, int sid, int ppid) {
         if (socketOpen()) {

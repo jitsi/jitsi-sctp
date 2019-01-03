@@ -51,6 +51,20 @@ public class Sctp4j {
         return 0;
     }
 
+    /**
+     * This callback is called by the SCTP stack when it has an incoming packet it has finished processing and wants
+     * to pass on.  This is only called for SCTP 'app' packets (not control packets, which are handled entirely by
+     * the stack itself)
+     *
+     * @param socketAddr
+     * @param data
+     * @param sid
+     * @param ssn
+     * @param tsn
+     * @param ppid
+     * @param context
+     * @param flags
+     */
     private static void onSctpIncomingData(long socketAddr, byte[] data, int sid, int ssn, int tsn, long ppid, int context, int flags) {
         SctpSocket socket = sockets.get(socketAddr);
         if (socket != null) {
@@ -59,7 +73,7 @@ public class Sctp4j {
     }
 
     /**
-     *
+     * This callback is called by the SCTP stack when it has a packet it wants to send out to the network
      * @param socketAddr
      * @param data
      * @param tos
@@ -71,9 +85,13 @@ public class Sctp4j {
         if (socket != null) {
             return socket.onSctpOut(data, tos, set_df);
         }
-        System.out.println("Sctp4j couldn't find socket to send data, returning -1");
         return -1;
     }
+
+    /**
+     * Create an SCTP socket
+     * @return the created SCTP socket
+     */
     public static SctpSocket createSocket() {
         long ptr = SctpJni.usrsctp_socket(DUMMY_PORT);
         if (ptr == 0) {
@@ -87,8 +105,9 @@ public class Sctp4j {
 
     /**
      * Starts a connection using the given socket.
-     * @param socket
-     * @return
+     * @param socket the socket to use for the connection
+     * @return false if there was an error, true if we started the connection (NOTE: this does not
+     * block until the socket is actually connected)
      */
     public static boolean connect(SctpSocket socket) {
         long ptr = getPtrFromSocket(socket);
@@ -98,10 +117,19 @@ public class Sctp4j {
         return false;
     }
 
+    /**
+     *
+     * @param socket
+     * @param data
+     * @param ordered
+     * @param sid
+     * @param ppid
+     * @return the number of sent bytes or -1 on error
+     */
     public static int send(SctpSocket socket, ByteBuffer data, boolean ordered, int sid, int ppid) {
         long ptr = getPtrFromSocket(socket);
         if (ptr != 0) {
-            SctpJni.usrsctp_send(ptr, data.array(), data.arrayOffset(), data.limit(), ordered, sid, ppid);
+            return SctpJni.usrsctp_send(ptr, data.array(), data.arrayOffset(), data.limit(), ordered, sid, ppid);
         }
         return -1;
     }
