@@ -187,13 +187,12 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1init
     debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c calling init\n");
     usrsctp_init((uint16_t) port, onSctpOutboundPacket, debugSctpPrintf);
 
-    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c about to set SCTP_DEBUG_ALL\n");
+    // Note: this code MUST be called after the call to usrsctp_init, above, as part of that
+    // call flow sets the debug to the default level (off)
 #ifdef SCTP_DEBUG
     debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c setting SCTP_DEBUG_ALL\n");
-    //usrsctp_sysctl_set_sctp_debug_on(SCTP_DEBUG_ALL);
-    usrsctp_sysctl_set_sctp_debug_on(SCTP_DEBUG_NONE);
+    usrsctp_sysctl_set_sctp_debug_on(SCTP_DEBUG_ALL);
 #endif
-
 
     /* TODO(ldixon) Consider turning this on/off. */
     usrsctp_sysctl_set_sctp_ecn_enable(0);
@@ -697,11 +696,8 @@ static int
 onSctpOutboundPacket
     (void *addr, void *buffer, size_t length, uint8_t tos, uint8_t set_df)
 {
-    if (buffer
-            && length
-            && callOnSctpOutboundPacket(addr, buffer, length, tos, set_df) == 0)
-    {
-        return 0;
+    if (buffer && length) {
+        return callOnSctpOutboundPacket(addr, buffer, length, tos, set_df);
     }
 
     /* FIXME not sure about this value, but an error for now */

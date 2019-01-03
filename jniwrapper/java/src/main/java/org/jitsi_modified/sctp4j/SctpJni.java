@@ -4,6 +4,7 @@ import cz.adamh.utils.NativeUtils;
 
 public class SctpJni {
     static {
+        // Load the native library
         try {
             String os = System.getProperty("os.name");
             if (os.toLowerCase().contains("mac")) {
@@ -20,6 +21,10 @@ public class SctpJni {
             System.out.println("Error loading native library: " + e);
         }
     }
+
+    public static IncomingSctpDataHandler incomingSctpDataHandler = null;
+    public static OutgoingSctpDataHandler outgoingSctpDataHandler = null;
+
     /**
      * Passes network packet to native SCTP stack counterpart.
      * @param ptr native socket pointer.
@@ -103,7 +108,8 @@ public class SctpJni {
     */
 
     /**
-     * Method fired by native counterpart to notify about incoming data.
+     * Method fired by native counterpart to notify about incoming data.  We just invoke the incomingSctpDataHandler
+     * (if it is not null) with the received data.
      *
      * @param socketAddr native socket pointer
      * @param data buffer holding received data
@@ -118,23 +124,14 @@ public class SctpJni {
             long socketAddr, byte[] data, int sid, int ssn, int tsn, long ppid,
             int context, int flags)
     {
-        //TODO
-//        SctpSocket socket = sockets.get(Long.valueOf(socketAddr));
-//
-//        if(socket == null)
-//        {
-////            logger.error("No SctpSocket found for ptr: " + socketAddr);
-//        }
-//        else
-//        {
-//            socket.onSctpInboundPacket(
-//                    data, sid, ssn, tsn, ppid, context, flags);
-//        }
+        if (incomingSctpDataHandler != null) {
+            incomingSctpDataHandler.apply(socketAddr, data, sid, ssn, tsn, ppid, context, flags);
+        }
     }
 
     /**
      * Method fired by native counterpart when SCTP stack wants to send
-     * network packet.
+     * network packet.  Invokes the outgoingSctpDataHandler (if not null) with the data.
      * @param socketAddr native socket pointer
      * @param data buffer holding packet data
      * @param tos type of service???
@@ -144,22 +141,11 @@ public class SctpJni {
     public static int onSctpOutboundPacket(
             long socketAddr, byte[] data, int tos, int set_df)
     {
-//        //TODO
-//        // FIXME handle tos and set_df
-//
-//        SctpSocket socket = sockets.get(Long.valueOf(socketAddr));
-//        int ret;
-//
-//        if(socket == null)
-//        {
-//            ret = -1;
-////            logger.error("No SctpSocket found for ptr: " + socketAddr);
-//        }
-//        else
-//        {
-//            ret = socket.onSctpOut(data, tos, set_df);
-//        }
-//        return ret;
-        return 0;
+        if (outgoingSctpDataHandler != null) {
+            outgoingSctpDataHandler.apply(socketAddr, data, tos, set_df);
+            return 0;
+        }
+        // FIXME handle tos and set_df
+        return -1;
     }
 }
