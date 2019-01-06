@@ -13,14 +13,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Sctp4j {
     private static boolean initialized = false;
     /**
-     * We don't actually bind directly to a port (data is sent and received via a socket
-     * elsewhere) but we do need to pass something reasonable into usrsctp or else it
-     * isn't happy
+     * https://github.com/sctplab/usrsctp/blob/master/Manual.md#usrsctp_init
      */
-    private static int DUMMY_PORT = 5000;
-    public static void init() {
+    public static void init(int port) {
         if (!initialized) {
-            SctpJni.usrsctp_init(DUMMY_PORT);
+            SctpJni.usrsctp_init(port);
             initialized = true;
 
             SctpJni.incomingSctpDataHandler = Sctp4j::onSctpIncomingData;
@@ -89,15 +86,34 @@ public class Sctp4j {
     }
 
     /**
-     * Create an SCTP socket
-     * @return the created SCTP socket
+     * Create an {@link SctpServerSocket} which can be used to listen for an incoming connection
+     * @param localSctpPort
+     * @return
      */
-    public static SctpSocket createSocket() {
-        long ptr = SctpJni.usrsctp_socket(DUMMY_PORT);
+    public static SctpServerSocket createServerSocket(int localSctpPort)
+    {
+        long ptr = SctpJni.usrsctp_socket(localSctpPort);
         if (ptr == 0) {
             return null;
         }
-        SctpSocket socket = new SctpSocket(ptr);
+        SctpServerSocket socket = new SctpServerSocket(ptr);
+        sockets.put(ptr, socket);
+
+        return socket;
+    }
+
+    /**
+     * Create an {@link SctpClientSocket} which can be used to connect to an {@link SctpServerSocket}
+     * @param localSctpPort
+     * @return
+     */
+    public static SctpClientSocket createClientSocket(int localSctpPort)
+    {
+        long ptr = SctpJni.usrsctp_socket(localSctpPort);
+        if (ptr == 0) {
+            return null;
+        }
+        SctpClientSocket socket = new SctpClientSocket(ptr);
         sockets.put(ptr, socket);
 
         return socket;
@@ -109,10 +125,10 @@ public class Sctp4j {
      * @return false if there was an error, true if we started the connection (NOTE: this does not
      * block until the socket is actually connected)
      */
-    public static boolean connect(SctpSocket socket) {
+    public static boolean connect(SctpSocket socket, int port) {
         long ptr = getPtrFromSocket(socket);
         if (ptr != 0) {
-            return SctpJni.usrsctp_connect(ptr, DUMMY_PORT);
+            return SctpJni.usrsctp_connect(ptr, port);
         }
         return false;
     }

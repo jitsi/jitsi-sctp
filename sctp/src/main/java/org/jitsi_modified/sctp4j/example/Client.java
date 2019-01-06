@@ -1,7 +1,6 @@
 package org.jitsi_modified.sctp4j.example;
 
-import org.jitsi_modified.sctp4j.Sctp4j;
-import org.jitsi_modified.sctp4j.SctpSocket;
+import org.jitsi_modified.sctp4j.*;
 
 import java.io.IOException;
 import java.net.*;
@@ -11,18 +10,20 @@ import java.util.concurrent.ExecutionException;
 
 public class Client {
     public static void main(String[] args) throws UnknownHostException, SocketException, ExecutionException, InterruptedException {
-        Sctp4j.init();
+        Sctp4j.init(5000);
 
         InetAddress localAddr = InetAddress.getByName("127.0.0.1");
         int localPort = 48002;
+        int localSctpPort = 5002;
 
         InetAddress remoteAddr = InetAddress.getByName("127.0.0.1");
         int remotePort = 48001;
+        int remoteSctpPort = 5001;
 
         DatagramSocket socket = new DatagramSocket(localPort, localAddr);
 
-        final SctpSocket client = Sctp4j.createSocket();
-        CompletableFuture<Boolean> dataSent = new CompletableFuture<>();
+        final SctpClientSocket client = Sctp4j.createClientSocket(localSctpPort);
+        CompletableFuture<String> dataReceived = new CompletableFuture<>();
         client.outgoingDataSender = (data, offset, length) -> {
             DatagramPacket packet = new DatagramPacket(data, offset, length, remoteAddr, remotePort);
             try {
@@ -32,6 +33,10 @@ public class Client {
             }
             return 0;
         };
+        client.dataCallback = (data, sid, ssn, tsn, ppid, context, flags) -> {
+            String message = new String(data);
+            dataReceived.complete(message);
+        };
         new Thread(() -> {
             byte[] buf = new byte[1600];
             DatagramPacket p = new DatagramPacket(buf, 1600);
@@ -39,7 +44,7 @@ public class Client {
                 try {
                     socket.receive(p);
                     client.onConnIn(p.getData(), p.getOffset(), p.getLength());
-                    if (dataSent.isDone()) {
+                    if (dataReceived.isDone()) {
                         // Quit once we sent data to the server
                         break;
                     }
@@ -50,17 +55,14 @@ public class Client {
             }
         }).start();
 
-        client.connect();
-
+        client.connect(remoteSctpPort);
 
         client.eventHandler = new SctpSocket.SctpSocketEventHandler() {
             @Override
-            public void onConnected() {
-                System.out.println("Client connected");
-                String message = "Hello, world";
+            public void onReady() {
+                System.out.println("Client connected, sending message");
+                String message = "Marco";
                 client.send(ByteBuffer.wrap(message.getBytes()), true, 0, 1);
-                client.close();
-                dataSent.complete(true);
             }
 
             @Override
@@ -69,7 +71,8 @@ public class Client {
             }
         };
 
-        dataSent.get();
-        System.out.println("Client done");
+        String serverMessage = dataReceived.get();
+        client.close();
+        System.out.println("Client received message: '" + serverMessage + "'");
     }
 }

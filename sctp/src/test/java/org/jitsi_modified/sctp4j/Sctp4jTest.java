@@ -14,7 +14,7 @@ public class Sctp4jTest {
     @Test
     public void testInit() {
         // Very basic test to verify that everything has been linked up correctly
-        Sctp4j.init();
+        Sctp4j.init(5000);
     }
 
     /**
@@ -22,10 +22,10 @@ public class Sctp4jTest {
      */
     @Test
     public void basicLoop() throws InterruptedException, TimeoutException, ExecutionException {
-        Sctp4j.init();
+        Sctp4j.init(5000);
 
-        final SctpSocket server = Sctp4j.createSocket();
-        final SctpSocket client = Sctp4j.createSocket();
+        final SctpServerSocket server = Sctp4j.createServerSocket(4242);
+        final SctpClientSocket client = Sctp4j.createClientSocket(4243);
 
         server.outgoingDataSender = (data, offset, length) -> {
             new Thread(() -> {
@@ -66,7 +66,7 @@ public class Sctp4jTest {
 
         client.eventHandler = new SctpSocket.SctpSocketEventHandler() {
             @Override
-            public void onConnected() {
+            public void onReady() {
                 System.out.println("Client connected, sending data");
                 String message = "Hello, world";
                 client.send(ByteBuffer.wrap(message.getBytes()), true, 0, 1);
@@ -82,7 +82,7 @@ public class Sctp4jTest {
 
         new Thread(() -> {
             System.out.println("Client connecting");
-            if (!client.connect()) {
+            if (!client.connect(4242)) {
                 System.out.println("Client failed to connect");
             }
         }, "Client thread").start();

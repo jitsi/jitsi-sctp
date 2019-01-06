@@ -2,15 +2,18 @@ package org.jitsi_modified.sctp4j;
 
 import java.nio.ByteBuffer;
 
-public class SctpSocket {
+public abstract class SctpSocket {
     public interface SctpSocketEventHandler {
-        void onConnected();
+        /**
+         * Called when this socket is ready for use
+         */
+        void onReady();
         void onDisconnected();
     }
     /**
      * Pointer to the native socket counterpart
      */
-    private long ptr;
+    protected long ptr;
 
     /**
      * Used to send network packets.
@@ -34,12 +37,19 @@ public class SctpSocket {
         this.ptr = ptr;
     }
 
-    private boolean socketOpen() {
+    protected boolean socketValid() {
         return this.ptr != 0;
     }
 
-    private boolean socketConnected() {
-        return socketOpen() && connected;
+    /**
+     * Whether or not this connection is ready for use.  The logic to determine this is different for
+     * client vs server sockets.
+     * @return
+     */
+    protected abstract boolean isReady();
+
+    protected boolean socketConnected() {
+        return socketValid() && connected;
     }
 
     /**
@@ -53,11 +63,11 @@ public class SctpSocket {
             SctpNotification.AssociationChange associationChange = (SctpNotification.AssociationChange)notification;
             switch (associationChange.state) {
                 case SctpNotification.AssociationChange.SCTP_COMM_UP: {
-                    boolean wasConnected = socketConnected();
+                    boolean wasReady = isReady();
                     connected = true;
-                    if (socketConnected() && !wasConnected) {
+                    if (isReady() && !wasReady) {
                         if (eventHandler != null) {
-                            eventHandler.onConnected();
+                            eventHandler.onReady();
                         }
                     }
                     break;
@@ -73,34 +83,6 @@ public class SctpSocket {
                 }
             }
         }
-    }
-
-    /**
-     * Makes SCTP socket passive.
-     * "Marks the socket as a passive socket, that is, as a socket that will be
-     * used to accept incoming connection requests using accept"
-     */
-    public synchronized void listen()
-    {
-        if (socketOpen()) {
-            SctpJni.usrsctp_listen(ptr);
-        }
-    }
-
-    /**
-     * Accepts incoming SCTP connection.
-     *
-     * Usrsctp is currently configured to work in non blocking mode thus this
-     * method should be polled in intervals.
-     *
-     * @return <tt>true</tt> if we have accepted incoming connection
-     *         successfully.
-     */
-    public synchronized boolean accept() {
-        if (socketOpen()) {
-            return SctpJni.usrsctp_accept(ptr);
-        }
-        return false;
     }
 
     /**
@@ -126,8 +108,10 @@ public class SctpSocket {
             throw new IllegalArgumentException(
                     "o: " + offset + " l: " + len + " packet l: " + packet.length);
         }
-        if (socketOpen()) {
+        if (socketValid()) {
             SctpJni.on_network_in(ptr, packet, offset, len);
+        } else {
+            System.out.println("Socket isn't open, ignoring incoming data");
         }
     }
 
@@ -146,7 +130,7 @@ public class SctpSocket {
             byte[] data, int sid, int ssn, int tsn, long ppid, int context,
             int flags)
     {
-        if (socketOpen()) {
+        if (socketValid()) {
             if ((flags & Sctp4j.MSG_NOTIFICATION) != 0) {
                 onNotification(SctpNotification.parse(data));
             } else {
@@ -168,7 +152,7 @@ public class SctpSocket {
      */
     public synchronized int onSctpOut(byte[] packet, int tos, int set_df)
     {
-        if (socketOpen()) {
+        if (socketValid()) {
             if (outgoingDataSender != null) {
                 return outgoingDataSender.send(packet, 0, packet.length);
             }
@@ -177,22 +161,11 @@ public class SctpSocket {
     }
 
     /**
-     * Starts a connection on this socket (if it's open).  See {@link Sctp4j#connect(SctpSocket)}
-     * @return true if the connection has started, false otherwise
-     */
-    public synchronized boolean connect() {
-        if (socketOpen()) {
-            return Sctp4j.connect(this);
-        }
-        return false;
-    }
-
-    /**
      * Send SCTP app data through the stack and out
      * @return the number of bytes sent or -1 on error
      */
     public synchronized int send(ByteBuffer data, boolean ordered, int sid, int ppid) {
-        if (socketOpen()) {
+        if (socketValid()) {
             return Sctp4j.send(this, data, ordered, sid, ppid);
         }
         return -1;
