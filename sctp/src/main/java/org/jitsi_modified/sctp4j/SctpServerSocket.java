@@ -55,6 +55,15 @@ public class SctpServerSocket extends SctpSocket
             if (SctpJni.usrsctp_accept(ptr))
             {
                 accepted = true;
+                // It's possible we can get the SCTP notification SCTP_COMM_UP before we've accepted,
+                // since accept is called repeatedly at some interval, so we need to check if we're
+                // ready here
+                //TODO: doesn't feel great to invoke this handler in the context of the accept call,
+                // should we post it elsewhere?
+                if (isReady())
+                {
+                    eventHandler.onReady();
+                }
                 return true;
             }
         } else {
