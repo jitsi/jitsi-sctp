@@ -6,7 +6,9 @@
 
     <!-- This module is responsible for building the final usrsctp native library: that is the one that will
      be loaded via System.loadLibrary(...) in the java code.  The library is placed in the 'target' output
-     directory and will be named "libjnisctp.jnilib" -->
+     directory and will be named "libjnisctp.jnilib".  Note that when building the jar, it uses the libs in
+     the prebuilt lib directory (src/main/resources/lib/), so if you want to use the jnilib you just built, you'll
+     need to copy it into the right place (correct platfomr subdir) in that prebuilt lib directory -->
     <parent>
         <groupId>org.jitsi</groupId>
         <artifactId>jniwrapper</artifactId>
@@ -19,11 +21,96 @@
 
     <profiles>
         <profile>
+            <!-- We only want to depend on the usrsctp source and recompile the native lib if it's been explicitly
+            requested to be rebuilt, otherwise we can build the jar from the prebuilt libs in
+            src/main/resources/lib.  TODO: we should also do this automatically if 'buildSctp' was passed, but
+            I believe multiple activation values are interpreted as "AND", so we'd need to define another profile
+            which would add the same things if buildSctp was defined. -->
+            <id>rebuild</id>
+            <activation>
+                <property>
+                    <name>buildNativeWrapper</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>usrsctp</artifactId>
+                    <version>${project.version}</version>
+                    <!-- This id matches the one we used in javalibs.xml for the usrsctp.  It's where we packaged up
+                    the usrsctp libs and includes -->
+                    <classifier>libs</classifier>
+                    <type>zip</type>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>1.0-alpha-9</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>java-compile</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>javah</goal>
+                                    <goal>compile</goal>
+                                    <goal>link</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <compilerProvider>generic</compilerProvider>
+                            <compilerStartOptions>
+                                <compilerStartOption>
+                                    -g -fPIC -std=c99 -O2 -Wall -Itarget/native/javah
+                                </compilerStartOption>
+                            </compilerStartOptions>
+
+                            <javahClassNames>
+                                <javahClassName>org.jitsi_modified.sctp4j.SctpJni</javahClassName>
+                            </javahClassNames>
+                            <javahOS>${os}</javahOS>
+
+                            <sources>
+                                <source>
+                                    <directory>src</directory>
+                                    <fileNames>
+                                        <fileName>org_jitsi_modified_sctp4j_SctpJni.c</fileName>
+                                    </fileNames>
+                                </source>
+                                <source>
+                                    <directory>
+                                        ${project.build.directory}/usrsctp-${project.version}/include
+                                    </directory>
+                                </source>
+                            </sources>
+
+                            <linkerStartOptions>
+                                <linkerStartOption>${linkStartOpts}</linkerStartOption>
+                            </linkerStartOptions>
+                            <linkerEndOptions>
+                                <linkerEndOption>${linkEndOpts}</linkerEndOption>
+                            </linkerEndOptions>
+                            <linkerFinalName>libjnisctp-${os}-${os.arch}</linkerFinalName>
+                            <linkerFinalNameExt>${libextension}</linkerFinalNameExt>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
             <id>mac</id>
             <activation>
                 <os>
                     <family>mac</family>
                 </os>
+                <property>
+                    <name>buildNativeWrapper</name>
+                </property>
             </activation>
             <properties>
                 <compiler>gcc</compiler>
@@ -45,6 +132,9 @@
                     <family>unix</family>
                     <name>Linux</name>
                 </os>
+                <property>
+                    <name>buildNativeWrapper</name>
+                </property>
             </activation>
             <properties>
                 <compiler>gcc</compiler>
@@ -65,15 +155,6 @@
     </profiles>
 
     <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>usrsctp</artifactId>
-            <version>${project.version}</version>
-            <!-- This id matches the one we used in javalibs.xml for the usrsctp.  It's where we packaged up
-             the usrsctp libs and includes -->
-            <classifier>libs</classifier>
-            <type>zip</type>
-        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>jniwrapper-java</artifactId>
@@ -102,60 +183,6 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>native-maven-plugin</artifactId>
-                <version>1.0-alpha-9</version>
-                <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <id>java-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>javah</goal>
-                            <goal>compile</goal>
-                            <goal>link</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <compilerProvider>generic</compilerProvider>
-                    <compilerStartOptions>
-                        <compilerStartOption>
-                            -g -fPIC -std=c99 -O2 -Wall -Itarget/native/javah
-                        </compilerStartOption>
-                    </compilerStartOptions>
-
-                    <javahClassNames>
-                        <javahClassName>org.jitsi_modified.sctp4j.SctpJni</javahClassName>
-                    </javahClassNames>
-                    <javahOS>${os}</javahOS>
-
-                    <sources>
-                        <source>
-                            <directory>src</directory>
-                            <fileNames>
-                                <fileName>org_jitsi_modified_sctp4j_SctpJni.c</fileName>
-                            </fileNames>
-                        </source>
-                        <source>
-                            <directory>
-                                ${project.build.directory}/usrsctp-${project.version}/include
-                            </directory>
-                        </source>
-                    </sources>
-
-                    <linkerStartOptions>
-                        <linkerStartOption>${linkStartOpts}</linkerStartOption>
-                    </linkerStartOptions>
-                    <linkerEndOptions>
-                        <linkerEndOption>${linkEndOpts}</linkerEndOption>
-                    </linkerEndOptions>
-                    <linkerFinalName>libjnisctp-${os}-${os.arch}</linkerFinalName>
-                    <linkerFinalNameExt>${libextension}</linkerFinalNameExt>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
-
 </project>
