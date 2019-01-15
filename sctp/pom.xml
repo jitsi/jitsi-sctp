@@ -6,16 +6,21 @@
 
     <!-- This module is what can be depended on by other Java projects to use the native usrsctp library; it bridges
      java to the JNI API -->
-    <groupId>org.jitsi</groupId>
+    <parent>
+        <groupId>org.jitsi</groupId>
+        <artifactId>sctp4j</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <name>Java SCTP library</name>
     <artifactId>sctp</artifactId>
-    <version>1.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
             <groupId>org.jitsi</groupId>
             <artifactId>jnilib</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

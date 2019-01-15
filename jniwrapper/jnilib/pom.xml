@@ -8,9 +8,14 @@
      of the native libraries to be loaded by the java file.  If you wanted to write your own SCTP java library,
      you would depend on this and use SctpJni to interact with the native usrsctp lib -->
 
-    <groupId>org.jitsi</groupId>
+    <parent>
+        <groupId>org.jitsi</groupId>
+        <artifactId>jniwrapper</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>jnilib</artifactId>
-    <version>1.0-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
