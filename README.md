@@ -25,7 +25,9 @@ Because JNI has a complex build process, this project has multiple submodules to
 
 This will install all the jars built by the project.  Depend on the `sctp` module to use sctp4j in your code.
 
-### Building a new JNI lib
+### (Re)Building a new JNI lib
+The JNI lib will need to be rebuilt if there is a change in the usrsctp version or a change in the JNI wrapper C file.
+
 * Clone the project
 * Clone the usrsctp src:
 ```
@@ -48,21 +50,4 @@ sctp4j> mvn -pl "jniwrapper/native" -DbuildNativeWrapper clean compile
 ```
 sctp4j> cp jniwrapper/native/target/libjnisctp-linux-amd64.jnilib src/main/resources/lib/linux/libjnisctp.jnilib
 ```
-* Create the JAR that will include the JNI lib
-```
-sctp4j> mvn -pl "jniwrapper/native" package install
-```
-* Rebuild the top-level JNI lib
-```
-sctp4j> mvn -pl "jniwrapper/jnilib" package install
-```
-
-### Updating the JNI lib
-###### e.g. Something changed in `org_jitsi_modified_sctp4j_SctpJni.c`
-1) Make the change in the c file
-2) Make sure the changes are in agreement with the Java file (and therefore the generated .h file created in sctp4j jniwrapper native module)
-3) Run the 'compile' target in the sctp4j jniwrapper native module
-4) This will build a new native library (`libjnisctp-<os>-<arch>.jnilib`)
-5) Move the built library into the prebuilt directory: `src/main/resources/lib/<os>`
-6) Run the 'package' target in th esctp4j jniwrapper native module
-
+* Once the lib has been put in the prebuilt directory, you can just re-run the top level `mvn package install` and it will use the new lib
