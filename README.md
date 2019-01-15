@@ -19,6 +19,11 @@ Because JNI has a complex build process, this project has multiple submodules to
   * The `jnilib` submodule combines the `jniwrapper-java` and `jniwrapper-native` submodules into a fat jar which includes the Java API and the native JNI libraries that will need to be loaded at runtime.
 * The `sctp` submodule contains the library on top of the JNI code.  The jar built by this is what is intended to be used by other code.
 
+### Building the jar files
+* Clone the project
+* Run `mvn package` (and `mvn install` to install locally)
+
+This will install all the jars built by the project.  Depend on the `sctp` module to use sctp4j in your code.
 
 ### Building a new JNI lib
 * Clone the project
@@ -29,30 +34,28 @@ sctp4j/usrsctp> git clone https://github.com/sctplab/usrsctp
 ```
 * Build the usrsctp submodule
 ```
-sctp4j/usrsctp> mvn clean compile install -DbuildSctp
+sctp4j> mvn -pl usrsctp -DbuildSctp clean compile install
 ```
 * Compile the JNI Java wrapper
 ```
-sctp4j/jniwrapper/java> mvn clean compile install
+sctp4j> mvn -pl "jniwrapper/java" clean compile install
 ```
 * Compile the JNI C wrapper
 ```
-sctp4j/jniwrapper/native> mvn compile
+sctp4j> mvn -pl "jniwrapper/native" -DbuildNativeWrapper clean compile
 ```
 * Copy the built JNI lib into the prebuilt folder, for example on Linux:
 ```
-sctp4j/jniwrapper/native> cp target/libjnisctp-linux-amd64.jnilib src/main/resources/lib/linux/libjnisctp.jnilib
+sctp4j> cp jniwrapper/native/target/libjnisctp-linux-amd64.jnilib src/main/resources/lib/linux/libjnisctp.jnilib
 ```
 * Create the JAR that will include the JNI lib
-* TODO: right now these commands needs to be run separately due to a bug when they're run as a single command (run as `mvn package` then `mvn install`)
 ```
-sctp4j/jniwrapper/native> mvn package install
+sctp4j> mvn -pl "jniwrapper/native" package install
 ```
 * Rebuild the top-level JNI lib
 ```
-sctp4j/jniwrapper/jnilib> mvn install
+sctp4j> mvn -pl "jniwrapper/jnilib" package install
 ```
-
 
 ### Updating the JNI lib
 ###### e.g. Something changed in `org_jitsi_modified_sctp4j_SctpJni.c`
