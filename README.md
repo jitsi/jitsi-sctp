@@ -34,20 +34,12 @@ The JNI lib will need to be rebuilt if there is a change in the usrsctp version 
 sctp4j/usrsctp> git clone https://github.com/sctplab/usrsctp
 (check out whatever hash/version you want)
 ```
-* Build the usrsctp submodule
+* Package everything and denote what should be rebuilt and redeployed.  Here we rebuild the usrsctp libs, rebuild the native wrapper and deploy the newly-built jnilib to the prebuilt libs directory
 ```
-sctp4j> mvn -pl usrsctp -DbuildSctp clean compile install
+sctp4j> mvn package -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib
 ```
-* Compile the JNI Java wrapper
+* Compile and install
 ```
-sctp4j> mvn -pl "jniwrapper/java" clean compile install
+sctp4j> mvn install -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib
 ```
-* Compile the JNI C wrapper
-```
-sctp4j> mvn -pl "jniwrapper/native" -DbuildNativeWrapper clean compile
-```
-* Copy the built JNI lib into the prebuilt folder, for example on Linux:
-```
-sctp4j> cp jniwrapper/native/target/libjnisctp-linux-amd64.jnilib src/main/resources/lib/linux/libjnisctp.jnilib
-```
-* Once the lib has been put in the prebuilt directory, you can just re-run the top level `mvn package install` and it will use the new lib
+* Note: The above commands must be run separately right now due to a bug in the maven-native-plugin.  Once a new release is done which includes [this fix](https://github.com/mojohaus/maven-native/pull/27) we'll be able to just run `mvn package install -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib`.
