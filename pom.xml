@@ -18,8 +18,19 @@
                 </os>
             </activation>
             <properties>
-                <compiler>gcc</compiler>
                 <os>darwin</os>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>Linux</name>
+                </os>
+            </activation>
+            <properties>
+                <os>linux</os>
             </properties>
         </profile>
     </profiles>

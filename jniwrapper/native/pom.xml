@@ -21,12 +21,54 @@
 
     <profiles>
         <profile>
-            <!-- We only want to depend on the usrsctp source and recompile the native lib if it's been explicitly
-            requested to be rebuilt, otherwise we can build the jar from the prebuilt libs in
-            src/main/resources/lib.  TODO: we should also do this automatically if 'buildSctp' was passed, but
-            I believe multiple activation values are interpreted as "AND", so we'd need to define another profile
-            which would add the same things if buildSctp was defined. -->
-            <id>rebuild</id>
+            <!-- This profile is activated when we're on mac and defines the compiler args we'll use if we're
+            rebuilding the native jniwrapper -->
+            <id>mac-compile-args</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <libextension>jnilib</libextension>
+                <linkStartOpts>
+                    -shared
+                    -L${project.build.directory}/usrsctp-${project.version}/lib
+                    target/usrsctp-1.0-SNAPSHOT/lib/libusrsctp.a
+                    -lpthread
+                </linkStartOpts>
+                <linkEndOpts></linkEndOpts>
+            </properties>
+        </profile>
+        <profile>
+            <!-- This profile is activated when we're on linux and defines the compiler args we'll use if we're
+            rebuilding the native jniwrapper -->
+            <id>linux-compile-args</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>Linux</name>
+                </os>
+            </activation>
+            <properties>
+                <libextension>so</libextension>
+                <linkStartOpts>
+                      -L${project.build.directory}/usrsctp-${project.version}/lib
+                      -shared
+                </linkStartOpts>
+                <linkEndOpts>
+                     -Wl,-Bstatic
+                     -lusrsctp
+                     -Wl,-Bdynamic
+                     -lpthread
+                </linkEndOpts>
+            </properties>
+        </profile>
+        <profile>
+            <!-- This profile is activated when the system property 'buildNativeWrapper' is defined (i.e. via
+            passing -DbuildNativeWrapper to maven).  It adds a dependency on the usrsctp jar (since we'll need
+            the built libraries and include headers from it) and recompiles the native jniwrapper code -->
+            <id>rebuild-native-wrapper</id>
             <activation>
                 <property>
                     <name>buildNativeWrapper</name>
@@ -100,57 +142,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <profile>
-            <id>mac</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                </os>
-                <property>
-                    <name>buildNativeWrapper</name>
-                </property>
-            </activation>
-            <properties>
-                <compiler>gcc</compiler>
-                <os>darwin</os>
-                <libextension>jnilib</libextension>
-                <linkStartOpts>
-                    -shared
-                    -L${project.build.directory}/usrsctp-${project.version}/lib
-                    target/usrsctp-1.0-SNAPSHOT/lib/libusrsctp.a
-                    -lpthread
-                </linkStartOpts>
-                <linkEndOpts></linkEndOpts>
-            </properties>
-        </profile>
-        <profile>
-            <id>linux</id>
-            <activation>
-                <os>
-                    <family>unix</family>
-                    <name>Linux</name>
-                </os>
-                <property>
-                    <name>buildNativeWrapper</name>
-                </property>
-            </activation>
-            <properties>
-                <compiler>gcc</compiler>
-                <os>linux</os>
-                <libextension>so</libextension>
-                <linkStartOpts>
-                     -L${project.build.directory}/usrsctp-${project.version}/lib
-                     -shared
-                </linkStartOpts>
-                <linkEndOpts>
-                    -Wl,-Bstatic
-                    -lusrsctp
-                    -Wl,-Bdynamic
-                    -lpthread
-                </linkEndOpts>
-            </properties>
         </profile>
     </profiles>
 
