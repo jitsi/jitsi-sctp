@@ -74,7 +74,6 @@ public abstract class SctpSocket {
      * @param notification the <tt>SctpNotification</tt> triggered.
      */
     private synchronized void onNotification(SctpNotification notification) {
-        System.out.println("Received SCTP notification " + notification);
         if (notification instanceof SctpNotification.AssociationChange) {
             SctpNotification.AssociationChange associationChange = (SctpNotification.AssociationChange)notification;
             switch (associationChange.state) {
