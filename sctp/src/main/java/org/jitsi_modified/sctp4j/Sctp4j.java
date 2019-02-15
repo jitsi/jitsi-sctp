@@ -41,6 +41,11 @@ public class Sctp4j {
         }
     }
 
+    static void socketClosed(long ptr)
+    {
+        sockets.remove(ptr);
+    }
+
     /**
      * SCTP notification
      */

@@ -105,6 +105,7 @@ public abstract class SctpSocket {
      */
     public synchronized void close() {
         SctpJni.usrsctp_close(ptr);
+        Sctp4j.socketClosed(ptr);
         ptr = 0;
         connected = false;
     }
