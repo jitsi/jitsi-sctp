@@ -76,12 +76,15 @@ public abstract class SctpSocket {
     private synchronized void onNotification(SctpNotification notification) {
         if (notification instanceof SctpNotification.AssociationChange) {
             SctpNotification.AssociationChange associationChange = (SctpNotification.AssociationChange)notification;
+            System.out.println("Got sctp association state update: " + associationChange.state);
             switch (associationChange.state) {
                 case SctpNotification.AssociationChange.SCTP_COMM_UP: {
                     boolean wasReady = isReady();
+                    System.out.println("sctp is now up.  was ready? " + wasReady);
                     connected = true;
                     if (isReady() && !wasReady) {
                         if (eventHandler != null) {
+                            System.out.println("sctp invoking onready");
                             eventHandler.onReady();
                         }
                     }
@@ -181,7 +184,7 @@ public abstract class SctpSocket {
      * @return the number of bytes sent or -1 on error
      */
     public synchronized int send(ByteBuffer data, boolean ordered, int sid, int ppid) {
-        if (socketValid()) {
+        if (socketConnected()) {
             return Sctp4j.send(this, data, ordered, sid, ppid);
         }
         return -1;
