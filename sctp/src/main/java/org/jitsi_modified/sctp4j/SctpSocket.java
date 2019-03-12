@@ -218,7 +218,10 @@ public abstract class SctpSocket
     {
         if (socketConnected())
         {
-            return Sctp4j.send(this, data, ordered, sid, ppid);
+            return SctpJni.usrsctp_send(
+                    ptr,
+                    data.array(), data.arrayOffset(), data.limit(),
+                    ordered, sid, ppid);
         }
         return -1;
     }

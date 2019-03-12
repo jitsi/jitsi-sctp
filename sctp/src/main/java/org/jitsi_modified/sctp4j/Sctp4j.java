@@ -161,45 +161,4 @@ public class Sctp4j {
 
         return socket;
     }
-
-    /**
-     * Starts a connection using the given socket.
-     * @param socket the socket to use for the connection
-     * @return false if there was an error, true if we started the connection
-     * (NOTE: this does not block until the socket is actually connected)
-     */
-    public static boolean connect(SctpSocket socket, int port)
-    {
-        long ptr = socket.ptr;
-        if (ptr != 0)
-        {
-            return SctpJni.usrsctp_connect(ptr, port);
-        }
-        return false;
-    }
-
-    /**
-     *
-     * @param socket
-     * @param data
-     * @param ordered
-     * @param sid
-     * @param ppid
-     * @return the number of sent bytes or -1 on error
-     */
-    public static int send(
-            SctpSocket socket,
-            ByteBuffer data,
-            boolean ordered, int sid, int ppid)
-    {
-        long ptr = socket.ptr;
-        if (ptr != 0)
-        {
-            return SctpJni.usrsctp_send(
-                    ptr,
-                    data.array(), data.arrayOffset(), data.limit(),
-                    ordered, sid, ppid);
-        }
-        return -1;
-    }
 }

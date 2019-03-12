@@ -36,8 +36,7 @@ public class SctpClientSocket extends SctpSocket
     }
 
     /**
-     * Starts a connection on this socket (if it's open).  See
-     * {@link Sctp4j#connect(SctpSocket, int)}.
+     * Starts a connection on this socket (if it's open).
      *
      * @return true if the connection has started, false otherwise
      */
@@ -45,7 +44,7 @@ public class SctpClientSocket extends SctpSocket
     {
         if (socketValid())
         {
-            return Sctp4j.connect(this, remoteSctpPort);
+            return SctpJni.usrsctp_connect(ptr, remoteSctpPort);
         }
         return false;
     }

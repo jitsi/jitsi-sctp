@@ -93,7 +93,8 @@ public class SctpServerSocket extends SctpSocket
                 }
                 return true;
             }
-        } else
+        }
+        else
         {
             System.out.println("Server can't accept, socket isn't valid");
         }
