@@ -16,12 +16,21 @@
 
 package org.jitsi_modified.sctp4j;
 
+import java.io.*;
+
+/**
+ * @author Brian Baldino
+ */
 public class SctpClientSocket extends SctpSocket
 {
-    public SctpClientSocket(long ptr) {
+    public SctpClientSocket(long ptr)
+    {
         super(ptr);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean isReady()
     {
@@ -29,13 +38,30 @@ public class SctpClientSocket extends SctpSocket
     }
 
     /**
-     * Starts a connection on this socket (if it's open).  See {@link Sctp4j#connect(SctpSocket, int)}
+     * Starts a connection on this socket (if it's open).
+     *
      * @return true if the connection has started, false otherwise
      */
-    public synchronized boolean connect(int remoteSctpPort) {
-        if (socketValid()) {
-            return Sctp4j.connect(this, remoteSctpPort);
+    public boolean connect(int remoteSctpPort)
+    {
+        boolean ret = false;
+        try
+        {
+            lockPtr();
         }
-        return false;
+        catch (IOException ioe)
+        {
+            return ret;
+        }
+
+        try
+        {
+            ret = SctpJni.usrsctp_connect(ptr, remoteSctpPort);
+        }
+        finally
+        {
+            unlockPtr();
+        }
+        return ret;
     }
 }
