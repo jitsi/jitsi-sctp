@@ -67,18 +67,6 @@ public class Sctp4j {
     private static final Map<Long, SctpSocket> sockets
             = new ConcurrentHashMap<>();
 
-    //TODO: if we do end up sticking with this (where we index by ptr
-    // when handling calls from the stack, but by socket when handling
-    // calls from java) maybe we want to maintain a bi-map or something
-    private static long getPtrFromSocket(SctpSocket socket) {
-        for (Map.Entry<Long, SctpSocket> entry : sockets.entrySet()) {
-            if (entry.getValue() == socket) {
-                return entry.getKey();
-            }
-        }
-        return 0;
-    }
-
     /**
      * This callback is called by the SCTP stack when it has an incoming packet
      * it has finished processing and wants to pass on.  This is only called for
@@ -182,7 +170,7 @@ public class Sctp4j {
      */
     public static boolean connect(SctpSocket socket, int port)
     {
-        long ptr = getPtrFromSocket(socket);
+        long ptr = socket.ptr;
         if (ptr != 0)
         {
             return SctpJni.usrsctp_connect(ptr, port);
@@ -204,7 +192,7 @@ public class Sctp4j {
             ByteBuffer data,
             boolean ordered, int sid, int ppid)
     {
-        long ptr = getPtrFromSocket(socket);
+        long ptr = socket.ptr;
         if (ptr != 0)
         {
             return SctpJni.usrsctp_send(
