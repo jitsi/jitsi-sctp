@@ -16,16 +16,22 @@
 
 package org.jitsi_modified.sctp4j;
 
-import java.nio.ByteBuffer;
+import java.nio.*;
 
-public abstract class SctpSocket {
-    public interface SctpSocketEventHandler {
+/**
+ * @author Brian Baldino
+ */
+public abstract class SctpSocket
+{
+    public interface SctpSocketEventHandler
+    {
         /**
          * Called when this socket is ready for use
          */
         void onReady();
         void onDisconnected();
     }
+
     /**
      * Pointer to the native socket counterpart
      */
@@ -49,22 +55,25 @@ public abstract class SctpSocket {
      */
     public SctpDataCallback dataCallback;
 
-    public SctpSocket(long ptr) {
+    public SctpSocket(long ptr)
+    {
         this.ptr = ptr;
     }
 
-    protected boolean socketValid() {
+    protected boolean socketValid()
+    {
         return this.ptr != 0;
     }
 
     /**
-     * Whether or not this connection is ready for use.  The logic to determine this is different for
-     * client vs server sockets.
+     * Whether or not this connection is ready for use.  The logic to determine
+     * this is different for client vs server sockets.
      * @return
      */
     protected abstract boolean isReady();
 
-    protected boolean socketConnected() {
+    protected boolean socketConnected()
+    {
         return socketValid() && connected;
     }
 
@@ -73,17 +82,25 @@ public abstract class SctpSocket {
      *
      * @param notification the <tt>SctpNotification</tt> triggered.
      */
-    private synchronized void onNotification(SctpNotification notification) {
-        if (notification instanceof SctpNotification.AssociationChange) {
-            SctpNotification.AssociationChange associationChange = (SctpNotification.AssociationChange)notification;
-            System.out.println("Got sctp association state update: " + associationChange.state);
-            switch (associationChange.state) {
-                case SctpNotification.AssociationChange.SCTP_COMM_UP: {
+    private synchronized void onNotification(SctpNotification notification)
+    {
+        if (notification instanceof SctpNotification.AssociationChange)
+        {
+            SctpNotification.AssociationChange associationChange
+                    = (SctpNotification.AssociationChange)notification;
+            System.out.println(
+                "Got sctp association state update: " + associationChange.state);
+            switch (associationChange.state)
+            {
+                case SctpNotification.AssociationChange.SCTP_COMM_UP:
+                {
                     boolean wasReady = isReady();
                     System.out.println("sctp is now up.  was ready? " + wasReady);
                     connected = true;
-                    if (isReady() && !wasReady) {
-                        if (eventHandler != null) {
+                    if (isReady() && !wasReady)
+                    {
+                        if (eventHandler != null)
+                        {
                             System.out.println("sctp invoking onready");
                             eventHandler.onReady();
                         }
@@ -92,9 +109,11 @@ public abstract class SctpSocket {
                 }
                 case SctpNotification.AssociationChange.SCTP_COMM_LOST:
                 case SctpNotification.AssociationChange.SCTP_SHUTDOWN_COMP:
-                case SctpNotification.AssociationChange.SCTP_CANT_STR_ASSOC: {
+                case SctpNotification.AssociationChange.SCTP_CANT_STR_ASSOC:
+                {
                     connected = false;
-                    if (eventHandler != null) {
+                    if (eventHandler != null)
+                    {
                         eventHandler.onDisconnected();
                     }
                     break;
@@ -106,7 +125,8 @@ public abstract class SctpSocket {
     /**
      * Close this socket
      */
-    public synchronized void close() {
+    public synchronized void close()
+    {
         SctpJni.usrsctp_close(ptr);
         Sctp4j.socketClosed(ptr);
         ptr = 0;
@@ -114,7 +134,8 @@ public abstract class SctpSocket {
     }
 
     /**
-     * Call this method to pass network packets received on the link to the SCTP stack
+     * Call this method to pass network packets received on the link to the
+     * SCTP stack.
      *
      * @param packet network packet received.
      * @param offset the position in the packet buffer where actual data starts
@@ -127,7 +148,8 @@ public abstract class SctpSocket {
             throw new IllegalArgumentException(
                     "o: " + offset + " l: " + len + " packet l: " + packet.length);
         }
-        if (socketValid()) {
+        if (socketValid())
+        {
             SctpJni.on_network_in(ptr, packet, offset, len);
         } else {
             System.out.println("Socket isn't open, ignoring incoming data");
@@ -149,12 +171,18 @@ public abstract class SctpSocket {
             byte[] data, int sid, int ssn, int tsn, long ppid, int context,
             int flags)
     {
-        if (socketValid()) {
-            if ((flags & Sctp4j.MSG_NOTIFICATION) != 0) {
+        if (socketValid())
+        {
+            if ((flags & Sctp4j.MSG_NOTIFICATION) != 0)
+            {
                 onNotification(SctpNotification.parse(data));
-            } else {
-                if (dataCallback != null) {
-                    dataCallback.onSctpPacket(data, sid, ssn, tsn, ppid, context, flags);
+            }
+            else
+            {
+                if (dataCallback != null)
+                {
+                    dataCallback.onSctpPacket(
+                            data, sid, ssn, tsn, ppid, context, flags);
                 }
             }
         }
@@ -171,8 +199,10 @@ public abstract class SctpSocket {
      */
     public synchronized int onSctpOut(byte[] packet, int tos, int set_df)
     {
-        if (socketValid()) {
-            if (outgoingDataSender != null) {
+        if (socketValid())
+        {
+            if (outgoingDataSender != null)
+            {
                 return outgoingDataSender.send(packet, 0, packet.length);
             }
         }
@@ -183,8 +213,11 @@ public abstract class SctpSocket {
      * Send SCTP app data through the stack and out
      * @return the number of bytes sent or -1 on error
      */
-    public synchronized int send(ByteBuffer data, boolean ordered, int sid, int ppid) {
-        if (socketConnected()) {
+    public synchronized int send(
+            ByteBuffer data, boolean ordered, int sid, int ppid)
+    {
+        if (socketConnected())
+        {
             return Sctp4j.send(this, data, ordered, sid, ppid);
         }
         return -1;
