@@ -16,6 +16,8 @@
 
 package org.jitsi_modified.sctp4j;
 
+import java.io.*;
+
 /**
  * An SctpServerSocket can be used to listen for an incoming connection and then
  * to send and receive data to/from the other peer.
@@ -36,15 +38,25 @@ public class SctpServerSocket extends SctpSocket
      * "Marks the socket as a passive socket, that is, as a socket that will be
      * used to accept incoming connection requests using accept"
      */
-    public synchronized void listen()
+    public void listen()
     {
-        if (socketValid())
+        try
+        {
+            lockPtr();
+        }
+        catch (IOException ioe)
+        {
+            System.out.println("Server socket can't listen: " + ioe.getMessage());
+            return;
+        }
+
+        try
         {
             SctpJni.usrsctp_listen(ptr);
         }
-        else
+        finally
         {
-            System.out.println("Server socket can't listen, socket isn't valid");
+            unlockPtr();
         }
     }
 
@@ -75,9 +87,20 @@ public class SctpServerSocket extends SctpSocket
      * @return <tt>true</tt> if we have accepted incoming connection
      *         successfully.
      */
-    public synchronized boolean accept()
+    public boolean accept()
     {
-        if (socketValid())
+        boolean ret = false;
+        try
+        {
+            lockPtr();
+        }
+        catch (IOException ioe)
+        {
+            System.out.println("Server can't accept: " + ioe.getMessage());
+            return ret;
+        }
+
+        try
         {
             if (SctpJni.usrsctp_accept(ptr))
             {
@@ -91,13 +114,14 @@ public class SctpServerSocket extends SctpSocket
                 {
                     eventHandler.onReady();
                 }
-                return true;
+                ret = true;
             }
         }
-        else
+        finally
         {
-            System.out.println("Server can't accept, socket isn't valid");
+            unlockPtr();
         }
-        return false;
+
+        return ret;
     }
 }

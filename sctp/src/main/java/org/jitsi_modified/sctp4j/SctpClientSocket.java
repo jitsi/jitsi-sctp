@@ -16,6 +16,8 @@
 
 package org.jitsi_modified.sctp4j;
 
+import java.io.*;
+
 /**
  * @author Brian Baldino
  */
@@ -40,12 +42,26 @@ public class SctpClientSocket extends SctpSocket
      *
      * @return true if the connection has started, false otherwise
      */
-    public synchronized boolean connect(int remoteSctpPort)
+    public boolean connect(int remoteSctpPort)
     {
-        if (socketValid())
+        boolean ret = false;
+        try
         {
-            return SctpJni.usrsctp_connect(ptr, remoteSctpPort);
+            lockPtr();
         }
-        return false;
+        catch (IOException ioe)
+        {
+            return ret;
+        }
+
+        try
+        {
+            ret = SctpJni.usrsctp_connect(ptr, remoteSctpPort);
+        }
+        finally
+        {
+            unlockPtr();
+        }
+        return ret;
     }
 }

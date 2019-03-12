@@ -16,10 +16,15 @@
 
 package org.jitsi_modified.sctp4j;
 
+import java.io.*;
 import java.nio.*;
 
 /**
+ * @author Pawel Domas
+ * @author George Politis
+ * @author Lyubomir Marinov
  * @author Brian Baldino
+ * @author Boris Grozev
  */
 public abstract class SctpSocket
 {
@@ -55,15 +60,104 @@ public abstract class SctpSocket
      */
     public SctpDataCallback dataCallback;
 
+    /**
+     * The number of current readers of {@link #ptr} which are preventing the
+     * writer (i.e. {@link #close()}) from invoking
+     * {@link Sctp#closeSocket(long)}.
+     */
+    private int ptrLockCount = 0;
+
+    /**
+     * The indicator which determines whether {@link #close()} has been invoked
+     * on this <tt>SctpSocket</tt>. It does NOT indicate whether
+     * {@link Sctp#closeSocket(long)} has been invoked with {@link #ptr}.
+     */
+    private boolean closed = false;
+
     public SctpSocket(long ptr)
     {
         this.ptr = ptr;
     }
 
-    protected boolean socketValid()
+    /**
+     * Locks {@link #ptr} for reading and returns its value if this
+     * <tt>SctpSocket</tt> has not been closed (yet). Each <tt>lockPtr</tt>
+     * method invocation must be balanced with a subsequent <tt>unlockPtr</tt>
+     * method invocation.
+     *
+     * @return <tt>ptr</tt>
+     * @throws IOException if this <tt>SctpSocket</tt> has (already) been closed
+     */
+    protected long lockPtr()
+        throws IOException
     {
-        return this.ptr != 0;
+        long ptr;
+
+        synchronized (this)
+        {
+            // It may seem that the synchronization with respect to the field
+            // closed is inconsistent because there is no synchronization upon
+            // writing its value. It is consistent though.
+            if (closed)
+            {
+                throw new IOException("SctpSocket is closed!");
+            }
+            else
+            {
+                ptr = this.ptr;
+                if (ptr == 0)
+                    throw new IOException("SctpSocket is closed!");
+                else
+                    ++ptrLockCount;
+            }
+        }
+        return ptr;
     }
+
+    /**
+     * Unlocks {@link #ptr} for reading. If this <tt>SctpSocket</tt> has been
+     * closed while <tt>ptr</tt> was locked for reading and there are no other
+     * readers at the time of the method invocation, closes <tt>ptr</tt>. Each
+     * <tt>unlockPtr</tt> method invocation must be balanced with a previous
+     * <tt>lockPtr</tt> method invocation.
+     */
+    protected void unlockPtr()
+    {
+        long ptr;
+
+        synchronized (this)
+        {
+            int ptrLockCount = this.ptrLockCount - 1;
+
+            if (ptrLockCount < 0)
+            {
+                throw new RuntimeException(
+                        "Unbalanced SctpSocket#unlockPtr() method invocation!");
+            }
+            else
+            {
+                this.ptrLockCount = ptrLockCount;
+                if (closed && (ptrLockCount == 0))
+                {
+                    // The actual closing of ptr was deferred until now.
+                    ptr = this.ptr;
+                    this.ptr = 0;
+                }
+                else
+                {
+                    // The actual closing of ptr may not have been requested or
+                    // will be deferred.
+                    ptr = 0;
+                }
+            }
+        }
+        if (ptr != 0)
+        {
+            Sctp4j.closeSocket(ptr);
+        }
+    }
+
+
 
     /**
      * Whether or not this connection is ready for use.  The logic to determine
@@ -74,7 +168,7 @@ public abstract class SctpSocket
 
     protected boolean socketConnected()
     {
-        return socketValid() && connected;
+        return ptr != 0 && connected;
     }
 
     /**
@@ -82,7 +176,7 @@ public abstract class SctpSocket
      *
      * @param notification the <tt>SctpNotification</tt> triggered.
      */
-    private synchronized void onNotification(SctpNotification notification)
+    private void onNotification(SctpNotification notification)
     {
         if (notification instanceof SctpNotification.AssociationChange)
         {
@@ -123,15 +217,43 @@ public abstract class SctpSocket
     }
 
     /**
-     * Close this socket
+     * Closes this socket. After call to this method this instance MUST NOT be
+     * used.
      */
-    public synchronized void close()
+    public void close()
     {
-        SctpJni.usrsctp_close(ptr);
-        Sctp4j.socketClosed(ptr);
-        ptr = 0;
+        // The value of the field closed only ever changes from false to true.
+        // Additionally, its reading is always synchronized and combined with
+        // access to the field ptrLockCount governed by logic which binds the
+        // meanings of the two values together. Consequently, the
+        // synchronization with respect to closed is considered consistent.
+        // Allowing the writing outside the synchronized block expedites the
+        // actual closing of ptr.
+        closed = true;
         connected = false;
+
+        long ptr;
+
+        synchronized (this)
+        {
+            if (ptrLockCount == 0)
+            {
+                // The actual closing of ptr will not be deferred.
+                ptr = this.ptr;
+                this.ptr = 0;
+            }
+            else
+            {
+                // The actual closing of ptr will be deferred.
+                ptr = 0;
+            }
+        }
+        if (ptr != 0)
+        {
+            Sctp4j.closeSocket(ptr);
+        }
     }
+
 
     /**
      * Call this method to pass network packets received on the link to the
@@ -141,18 +263,31 @@ public abstract class SctpSocket
      * @param offset the position in the packet buffer where actual data starts
      * @param len length of packet data in the buffer.
      */
-    public synchronized void onConnIn(byte[] packet, int offset, int len)
+    public void onConnIn(byte[] packet, int offset, int len)
     {
         if (offset < 0 || len <= 0 || offset + len > packet.length)
         {
             throw new IllegalArgumentException(
                     "o: " + offset + " l: " + len + " packet l: " + packet.length);
         }
-        if (socketValid())
+
+        try
+        {
+            lockPtr();
+        }
+        catch (IOException ioe)
+        {
+            System.out.println("Socket isn't open, ignoring incoming data");
+            return;
+        }
+
+        try
         {
             SctpJni.on_network_in(ptr, packet, offset, len);
-        } else {
-            System.out.println("Socket isn't open, ignoring incoming data");
+        }
+        finally
+        {
+            unlockPtr();
         }
     }
 
@@ -167,23 +302,20 @@ public abstract class SctpSocket
      * @param context
      * @param flags
      */
-    synchronized void onSctpIn(
+    void onSctpIn(
             byte[] data, int sid, int ssn, int tsn, long ppid, int context,
             int flags)
     {
-        if (socketValid())
+        if ((flags & Sctp4j.MSG_NOTIFICATION) != 0)
         {
-            if ((flags & Sctp4j.MSG_NOTIFICATION) != 0)
+            onNotification(SctpNotification.parse(data));
+        }
+        else
+        {
+            if (dataCallback != null)
             {
-                onNotification(SctpNotification.parse(data));
-            }
-            else
-            {
-                if (dataCallback != null)
-                {
-                    dataCallback.onSctpPacket(
-                            data, sid, ssn, tsn, ppid, context, flags);
-                }
+                dataCallback.onSctpPacket(
+                        data, sid, ssn, tsn, ppid, context, flags);
             }
         }
     }
@@ -197,32 +329,65 @@ public abstract class SctpSocket
      * @param set_df use IP don't fragment option
      * @return 0 if the packet was successfully sent or -1 otherwise.
      */
-    public synchronized int onSctpOut(byte[] packet, int tos, int set_df)
+    public int onSctpOut(byte[] packet, int tos, int set_df)
     {
-        if (socketValid())
+        int ret = -1;
+        try
+        {
+            lockPtr();
+        }
+        catch (IOException ioe)
+        {
+            return ret;
+        }
+
+        try
         {
             if (outgoingDataSender != null)
             {
-                return outgoingDataSender.send(packet, 0, packet.length);
+                ret = outgoingDataSender.send(packet, 0, packet.length);
             }
         }
-        return -1;
+        finally
+        {
+            unlockPtr();
+        }
+
+        return ret;
     }
 
     /**
      * Send SCTP app data through the stack and out
      * @return the number of bytes sent or -1 on error
      */
-    public synchronized int send(
+    public int send(
             ByteBuffer data, boolean ordered, int sid, int ppid)
     {
-        if (socketConnected())
+        int ret = -1;
+
+        try
         {
-            return SctpJni.usrsctp_send(
-                    ptr,
-                    data.array(), data.arrayOffset(), data.limit(),
-                    ordered, sid, ppid);
+            lockPtr();
         }
-        return -1;
+        catch (IOException ioe)
+        {
+            return ret;
+        }
+
+        try
+        {
+            if (socketConnected())
+            {
+                ret = SctpJni.usrsctp_send(
+                        ptr,
+                        data.array(), data.arrayOffset(), data.limit(),
+                        ordered, sid, ppid);
+            }
+        }
+        finally
+        {
+            unlockPtr();
+        }
+        return ret;
     }
 }

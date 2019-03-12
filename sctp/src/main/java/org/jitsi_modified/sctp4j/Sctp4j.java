@@ -16,7 +16,6 @@
 
 package org.jitsi_modified.sctp4j;
 
-import java.nio.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -46,8 +45,14 @@ public class Sctp4j {
         }
     }
 
-    static void socketClosed(long ptr)
+    /**
+     * Closes the SCTP socket addressed by the given native pointer.
+     *
+     * @param ptr the native socket pointer.
+     */
+    static void closeSocket(long ptr)
     {
+        SctpJni.usrsctp_close(ptr);
         sockets.remove(ptr);
     }
 
