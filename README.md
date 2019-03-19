@@ -1,10 +1,10 @@
-# Sctp4j
-The Sctp4j project creates a JNI wrapper around the usrsctp lib and provides a set of Java classes to further flesh out a convenient Java SCTP API.
+# jitsi-sctp
+The jitsi-sctp project creates a JNI wrapper around the usrsctp lib and provides a set of Java classes to further flesh out a convenient Java SCTP API.
 
 ## Project organization
 Because JNI has a complex build process, this project has multiple submodules to try and separate each of the phases necessary from start to finish.  The maven modules are laid out as follows:
 ```
-`-- sctp4j
+`-- jitsi-sctp
     |-- jniwrapper
     |   |-- java
     |   |-- jnilib
@@ -23,7 +23,7 @@ Because JNI has a complex build process, this project has multiple submodules to
 * Clone the project
 * Run `mvn package` (and `mvn install` to install locally)
 
-This will install all the jars built by the project.  Depend on the `sctp` module to use sctp4j in your code.
+This will install all the jars built by the project.  Depend on the `sctp` module to use jitsi-sctp in your code.
 
 ### (Re)Building a new JNI lib
 The JNI lib will need to be rebuilt if there is a change in the usrsctp version or a change in the JNI wrapper C file.
@@ -31,15 +31,15 @@ The JNI lib will need to be rebuilt if there is a change in the usrsctp version 
 * Clone the project
 * Clone the usrsctp src:
 ```
-sctp4j/usrsctp> git clone https://github.com/sctplab/usrsctp
+jitsi-sctp/usrsctp> git clone https://github.com/sctplab/usrsctp
 (check out whatever hash/version you want)
 ```
 * Package everything and denote what should be rebuilt and redeployed.  Here we rebuild the usrsctp libs, rebuild the native wrapper and deploy the newly-built jnilib to the prebuilt libs directory
 ```
-sctp4j> mvn package -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib
+jitsi-sctp> mvn package -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib
 ```
 * Compile and install
 ```
-sctp4j> mvn install -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib
+jitsi-sctp> mvn install -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib
 ```
 * Note: The above commands must be run separately right now due to a bug in the maven-native-plugin.  Once a new release is done which includes [this fix](https://github.com/mojohaus/maven-native/pull/27) we'll be able to just run `mvn package install -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib`.
