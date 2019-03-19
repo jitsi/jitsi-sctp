@@ -8,7 +8,7 @@
      java to the JNI API -->
     <parent>
         <groupId>org.jitsi</groupId>
-        <artifactId>sctp4j</artifactId>
+        <artifactId>jitsi-sctp</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
