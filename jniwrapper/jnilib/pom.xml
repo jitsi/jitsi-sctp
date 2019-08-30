@@ -16,17 +16,50 @@
     </parent>
 
     <artifactId>jnilib</artifactId>
+    <packaging>pom</packaging>
+    <profiles>
+        <profile>
+            <id>build-x-plat-jar</id>
+            <dependencies>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>jniwrapper-native</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>linux-x86_64</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>jniwrapper-native</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>freebsd-x86_64</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>jniwrapper-native</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>osx-x86_64</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>jniwrapper-native</artifactId>
+                    <version>${project.version}</version>
+                    <classifier>windows-x86_64</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
-            <groupId>org.jitsi</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>jniwrapper-java</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jitsi</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>jniwrapper-native</artifactId>
             <version>${project.version}</version>
+            <classifier>${maven_platform_classifier}</classifier>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -34,7 +67,6 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -42,16 +74,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>make-assembly</id>
                         <phase>package</phase>
                         <goals> <goal>single</goal> </goals>
                         <configuration>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>assembly.xml</descriptor>
+                            </descriptors>
                         </configuration>
                     </execution>
                 </executions>

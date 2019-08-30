@@ -11,6 +11,18 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
+    <properties>
+        <!--
+          A specific commit of https://github.com/sctplab/usrsctp to use during compilation.
+          It is supposed that maven artifact produced by `usrsctp` maven module is built
+          in advance. The usrsctp version to use must be carefully chosen, due to various
+          issues inside intermediate versions of usrsctp. Currently the usrsctp version chosen
+          is used by Chromium 78. This version is proven to be stable enough to pass WebRTC's
+          stress test suite: https://webrtc.googlesource.com/src/+/2ebbff83eef7db5a3c70b8378aaabafa0a11099a/media/sctp/sctp_transport_reliability_unittest.cc
+        -->
+        <usrsctp_commit_id>7a8bc9a</usrsctp_commit_id>
+    </properties>
+
     <artifactId>jniwrapper</artifactId>
     <packaging>pom</packaging>
 

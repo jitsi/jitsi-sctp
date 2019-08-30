@@ -18,9 +18,21 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jitsi</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>jnilib</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <!-- This dependencies are embedded into jnilib jar and not need to be
+                     visible as "standalone" dependencies -->
+                <exclusion>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>jniwrapper-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>jniwrapper-native</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -36,7 +48,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -46,8 +57,8 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
                 <configuration>
-		    <!-- Don't choke when Sctp4j writes to stdout. -->
-		    <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
+                    <!-- Don't choke when Sctp4j writes to stdout. -->
+                    <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
             </plugin>
         </plugins>

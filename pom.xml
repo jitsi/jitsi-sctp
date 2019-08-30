@@ -8,7 +8,15 @@
     <artifactId>jitsi-sctp</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-
+    <url>https://github.com/jitsi/jitsi-sctp</url>
+    <scm>
+        <url>https://github.com/jitsi/jitsi-sctp</url>
+        <connection>scm:git:https://github.com/jitsi/jitsi-sctp.git</connection>
+        <developerConnection>scm:git:https://github.com/jitsi/jitsi-sctp.git</developerConnection>
+    </scm>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
     <profiles>
         <profile>
             <id>mac</id>
@@ -18,7 +26,9 @@
                 </os>
             </activation>
             <properties>
-                <os>darwin</os>
+                <cmake_c_flags>-fno-omit-frame-pointer -fno-optimize-sibling-calls -D__FUNCTION__=__func__</cmake_c_flags>
+                <cmake_generator_platform/>
+                <maven_platform_classifier>${os.detected.classifier}</maven_platform_classifier>
             </properties>
         </profile>
         <profile>
@@ -30,7 +40,9 @@
                 </os>
             </activation>
             <properties>
-                <os>linux</os>
+                <cmake_c_flags>-fno-omit-frame-pointer -fno-optimize-sibling-calls -Wno-format-truncation -Wno-address-of-packed-member -D__FUNCTION__=__func__</cmake_c_flags>
+                <cmake_generator_platform/>
+                <maven_platform_classifier>${os.detected.classifier}</maven_platform_classifier>
             </properties>
         </profile>
         <profile>
@@ -42,7 +54,22 @@
                 </os>
             </activation>
             <properties>
-                <os>freebsd</os>
+                <cmake_c_flags>-fno-omit-frame-pointer -fno-optimize-sibling-calls -Wno-format-truncation -Wno-address-of-packed-member -D__FUNCTION__=__func__</cmake_c_flags>
+                <cmake_generator_platform/>
+                <maven_platform_classifier>${os.detected.classifier}</maven_platform_classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <cmake_generator_platform>-DCMAKE_GENERATOR_PLATFORM=x64</cmake_generator_platform>
+                <cmake_c_flags></cmake_c_flags>
+                <maven_platform_classifier>${os.detected.classifier}</maven_platform_classifier>
             </properties>
         </profile>
     </profiles>
@@ -52,4 +79,58 @@
         <module>jniwrapper</module>
         <module>sctp</module>
     </modules>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.6.1</version>
+            </extension>
+        </extensions>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>1.6.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.1.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>pl.project13.maven</groupId>
+                    <artifactId>git-commit-id-plugin</artifactId>
+                    <version>3.0.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>
