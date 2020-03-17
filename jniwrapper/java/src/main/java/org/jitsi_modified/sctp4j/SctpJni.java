@@ -29,6 +29,9 @@ public class SctpJni {
             } else if (os.toLowerCase().contains("linux")) {
                 System.out.println("SCTP JNI load: Linux OS detected");
                 NativeUtils.loadLibraryFromJar("/lib/linux/libjnisctp.so");
+            } else if (os.toLowerCase().contains("freebsd")) {
+                System.out.println("SCTP JNI load: FreeBSD OS detected");
+                NativeUtils.loadLibraryFromJar("/lib/freebsd/libjnisctp.so");
             } else {
                 throw new Exception("Unsupported OS: " + os);
             }

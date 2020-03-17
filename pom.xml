@@ -33,6 +33,18 @@
                 <os>linux</os>
             </properties>
         </profile>
+        <profile>
+            <id>freebsd</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>freebsd</name>
+                </os>
+            </activation>
+            <properties>
+                <os>freebsd</os>
+            </properties>
+        </profile>
     </profiles>
 
     <modules>
