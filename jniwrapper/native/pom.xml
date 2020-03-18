@@ -41,6 +41,30 @@
             </properties>
         </profile>
         <profile>
+            <!-- This profile is activated when we're on FreeBSD and defines the compiler args we'll use if we're
+            rebuilding the native jniwrapper -->
+            <id>freebsd-args</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>freebsd</name>
+                </os>
+            </activation>
+            <properties>
+                <libextension>so</libextension>
+                <linkStartOpts>
+                      -L${project.build.directory}/usrsctp-${project.version}/lib
+                      -shared
+                </linkStartOpts>
+                <linkEndOpts>
+                     -Wl,-Bstatic
+                     -lusrsctp
+                     -Wl,-Bdynamic
+                     -lpthread
+                </linkEndOpts>
+            </properties>
+        </profile>
+        <profile>
             <!-- This profile is activated when we're on linux and defines the compiler args we'll use if we're
             rebuilding the native jniwrapper -->
             <id>linux-compile-args</id>
