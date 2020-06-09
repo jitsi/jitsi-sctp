@@ -26,6 +26,8 @@
         <jnisctp_cmake_install_dir>${project.build.directory}/jnisctp_cmake/${maven_platform_classifier}/install</jnisctp_cmake_install_dir>
         <!-- Allow install target to execute only if something useful is build -->
         <maven.install.skip>true</maven.install.skip>
+        <!-- jniwrapper-native library is deployed as part of jnilib.jar by being embedded with maven assembly plugin -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <profiles>

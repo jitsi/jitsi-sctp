@@ -26,8 +26,10 @@
         <usrsctp_source_dir>${project.basedir}/usrsctp</usrsctp_source_dir>
         <usrsctp_cmake_build_dir>${project.build.directory}/usrsctp_cmake/${maven_platform_classifier}/build</usrsctp_cmake_build_dir>
         <usrsctp_cmake_install_dir>${project.build.directory}/usrsctp_cmake/${maven_platform_classifier}/install</usrsctp_cmake_install_dir>
-        <!-- Allow install target to execute only if something useful is build -->
+        <!-- Allow install and deploy target to execute only if something useful is build -->
         <maven.install.skip>true</maven.install.skip>
+        <!-- usrsctp library is deployed as part of jnilib.jar by being embedded with maven assembly plugin -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <!-- usrsctp is only compiled if profile is enabled, e.g '-Pbuild-usrsctp' is passed to maven -->

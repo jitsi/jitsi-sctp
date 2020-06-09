@@ -31,12 +31,6 @@
                     <groupId>${project.groupId}</groupId>
                     <artifactId>jniwrapper-native</artifactId>
                     <version>${project.version}</version>
-                    <classifier>freebsd-x86_64</classifier>
-                </dependency>
-                <dependency>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>jniwrapper-native</artifactId>
-                    <version>${project.version}</version>
                     <classifier>osx-x86_64</classifier>
                 </dependency>
                 <dependency>
