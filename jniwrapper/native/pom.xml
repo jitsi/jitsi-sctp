@@ -198,7 +198,7 @@
                                     <executable>cp</executable>
                                     <arguments>
                                         <argument>libjnisctp-${os}-${os.arch}.${libextension}</argument>
-                                        <argument>${project.basedir}/src/main/resources/lib/${os}/libjnisctp.jnilib</argument>
+                                        <argument>${project.basedir}/src/main/resources/lib/${os}/libjnisctp.${libextension}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
