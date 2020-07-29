@@ -23,9 +23,9 @@ import java.io.*;
  */
 public class SctpClientSocket extends SctpSocket
 {
-    public SctpClientSocket(long ptr)
+    public SctpClientSocket(long ptr, long id)
     {
-        super(ptr);
+        super(ptr, id);
     }
 
     /**

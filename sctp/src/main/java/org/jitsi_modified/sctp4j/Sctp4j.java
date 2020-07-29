@@ -18,6 +18,7 @@ package org.jitsi_modified.sctp4j;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
 /**
  * This class represents the first layer of the actual API on top of the bare
@@ -50,10 +51,10 @@ public class Sctp4j {
      *
      * @param ptr the native socket pointer.
      */
-    static void closeSocket(long ptr)
+    static void closeSocket(long ptr, long id)
     {
         SctpJni.usrsctp_close(ptr);
-        sockets.remove(ptr);
+        sockets.remove(id);
     }
 
     private static void log(String s)
@@ -134,14 +135,15 @@ public class Sctp4j {
      */
     public static SctpServerSocket createServerSocket(int localSctpPort)
     {
-        long ptr = SctpJni.usrsctp_socket(localSctpPort);
+        long id = nextId.getAndIncrement();
+        long ptr = SctpJni.usrsctp_socket(localSctpPort, id);
         if (ptr == 0)
         {
             log("Failed to create server socket");
             return null;
         }
-        SctpServerSocket socket = new SctpServerSocket(ptr);
-        sockets.put(ptr, socket);
+        SctpServerSocket socket = new SctpServerSocket(ptr, id);
+        sockets.put(id, socket);
 
         return socket;
     }
@@ -155,15 +157,21 @@ public class Sctp4j {
      */
     public static SctpClientSocket createClientSocket(int localSctpPort)
     {
-        long ptr = SctpJni.usrsctp_socket(localSctpPort);
+        long id = nextId.getAndIncrement();
+        long ptr = SctpJni.usrsctp_socket(localSctpPort, id);
         if (ptr == 0)
         {
             log("Failed to create client socket");
             return null;
         }
-        SctpClientSocket socket = new SctpClientSocket(ptr);
-        sockets.put(ptr, socket);
+        SctpClientSocket socket = new SctpClientSocket(ptr, id);
+        sockets.put(id, socket);
 
         return socket;
     }
+
+    /**
+     * Atomic counter to assign each SctpSocket a unique ID.
+     */
+    private static AtomicLong nextId = new AtomicLong(1);
 }

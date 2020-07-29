@@ -34,17 +34,18 @@ typedef struct _SctpSocket
 {
     /** The socket created by the SCTP stack. */
     struct socket *so;
+    void *id;
     int localPort;
 } SctpSocket;
 
 void
 callOnSctpInboundPacket
-    (void *socketPtr, void *data, size_t length, uint16_t sid, uint16_t ssn,
+    (void *socketAddr, void *data, size_t length, uint16_t sid, uint16_t ssn,
         uint16_t tsn, uint32_t ppid, uint16_t context, int flags);
 
 int
 callOnSctpOutboundPacket
-    (void *socketPtr, void *data, size_t length, uint8_t tos, uint8_t set_df);
+    (void *socketAddr, void *data, size_t length, uint8_t tos, uint8_t set_df);
 
 int
 connectSctp(SctpSocket *sctpSocket, int remotePort);
@@ -89,13 +90,16 @@ JNIEXPORT void JNICALL
 Java_org_jitsi_1modified_sctp4j_SctpJni_on_1network_1in
     (JNIEnv *env, jclass clazz, jlong ptr, jbyteArray pkt, jint off, jint len)
 {
+    SctpSocket *sctpSocket;
     jbyte *pkt_;
+
+    sctpSocket = (SctpSocket *) (intptr_t) ptr;
 
     pkt_ = (*env)->GetByteArrayElements(env, pkt, NULL);
     if (pkt_)
     {
         usrsctp_conninput(
-                (void *) (intptr_t) ptr,
+                sctpSocket->id,
                 pkt_ + off, len,
                 /* ecn_bits */ 0);
         (*env)->ReleaseByteArrayElements(env, pkt, pkt_, JNI_ABORT);
@@ -140,6 +144,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1close
 
     sctpSocket = (SctpSocket *) (intptr_t) ptr;
     usrsctp_close(sctpSocket->so);
+    usrsctp_deregister_address(sctpSocket->id);
     free(sctpSocket);
 }
 
@@ -215,7 +220,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1listen
 
     sctpSocket = (SctpSocket *) (intptr_t) ptr;
     /* Bind server socket. */
-    getSctpSockAddr(psconn, sctpSocket, sctpSocket->localPort);
+    getSctpSockAddr(psconn, sctpSocket->id, sctpSocket->localPort);
     if (usrsctp_bind(sctpSocket->so, (struct sockaddr *) psconn, sizeof(sconn))
             < 0)
     {
@@ -284,7 +289,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1send
  */
 JNIEXPORT jlong JNICALL
 Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
-    (JNIEnv *env, jclass clazz, jint localPort)
+    (JNIEnv *env, jclass clazz, jint localPort, jlong idL)
 {
     SctpSocket *sctpSocket;
     struct socket *so;
@@ -292,6 +297,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
     struct sctp_assoc_value stream_rst;
     uint32_t nodelay = 1;
     size_t i, eventTypeCount;
+    void *id = (void *) (intptr_t) idL;
 
     struct sctp_event ev;
 
@@ -302,9 +308,9 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
         return 0;
     }
 
-    // Register this class as an address for usrsctp. This is used by SCTP to
+    // Register this object's index for usrsctp. This is used by SCTP to
     // direct the packets received (by the created socket) to this class.
-    usrsctp_register_address(sctpSocket);
+    usrsctp_register_address(id);
 
     so
         = usrsctp_socket(
@@ -314,7 +320,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
                 onSctpInboundPacket,
                 /* send_cb */ NULL,
                 /* sb_threshold */ 0,
-                sctpSocket);
+                id);
     if (so == NULL)
     {
         perror("usrsctp_socket");
@@ -382,6 +388,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
     }
 
     sctpSocket->so = so;
+    sctpSocket->id = id;
     sctpSocket->localPort = (int) localPort;
 
     return (jlong) (intptr_t) sctpSocket;
@@ -461,7 +468,7 @@ JNI_OnUnload(JavaVM *vm, void *reserved)
 
 void
 callOnSctpInboundPacket
-    (void *socketPtr, void *data, size_t length, uint16_t sid, uint16_t ssn,
+    (void *socketAddr, void *data, size_t length, uint16_t sid, uint16_t ssn,
         uint16_t tsn, uint32_t ppid, uint16_t context, int flags)
 {
     JavaVM *vm = Sctp_vm;
@@ -496,7 +503,7 @@ callOnSctpInboundPacket
                             env,
                             clazz,
                             receiveCb,
-                            (jlong) (intptr_t) socketPtr,
+                            (jlong) (intptr_t) socketAddr,
                             data_,
                             (jint) sid,
                             (jint) ssn,
@@ -531,7 +538,7 @@ callOnSctpInboundPacket
 
 int
 callOnSctpOutboundPacket
-    (void *socketPtr, void *data, size_t length, uint8_t tos, uint8_t set_df)
+    (void *socketAddr, void *data, size_t length, uint8_t tos, uint8_t set_df)
 {
     JavaVM *vm = Sctp_vm;
     JNIEnv *env;
@@ -567,7 +574,7 @@ callOnSctpOutboundPacket
                                 env,
                                 clazz,
                                 sendCb,
-                                (jlong) (intptr_t) socketPtr,
+                                (jlong) (intptr_t) socketAddr,
                                 data_,
                                 (jint) tos,
                                 (jint) set_df);
@@ -607,14 +614,14 @@ connectSctp(SctpSocket *sctpSocket, int remotePort)
 
     so = sctpSocket->so;
 
-    getSctpSockAddr(psconn, sctpSocket, sctpSocket->localPort);
+    getSctpSockAddr(psconn, sctpSocket->id, sctpSocket->localPort);
     if (usrsctp_bind(so, (struct sockaddr *) psconn, sizeof(sconn)) < 0)
     {
         perror("usrsctp_bind");
         return 0;
     }
 
-    getSctpSockAddr(psconn, sctpSocket, remotePort);
+    getSctpSockAddr(psconn, sctpSocket->id, remotePort);
     connect_result
         = usrsctp_connect(so, (struct sockaddr *) psconn, sizeof(sconn));
     if (connect_result < 0 && errno != EINPROGRESS)

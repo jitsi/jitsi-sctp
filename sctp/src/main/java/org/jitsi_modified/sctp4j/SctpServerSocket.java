@@ -28,9 +28,9 @@ public class SctpServerSocket extends SctpSocket
 {
     private boolean accepted = false;
 
-    public SctpServerSocket(long ptr)
+    public SctpServerSocket(long ptr, long id)
     {
-        super(ptr);
+        super(ptr, id);
     }
 
     /**

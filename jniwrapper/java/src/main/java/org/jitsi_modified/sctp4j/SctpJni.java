@@ -119,7 +119,7 @@ public class SctpJni {
      * @param localPort local SCTP socket port.
      * @return native socket pointer or 0 if operation failed.
      */
-    public static native long usrsctp_socket(int localPort);
+    public static native long usrsctp_socket(int localPort, long index);
 
     /*
     FIXME to be added?
