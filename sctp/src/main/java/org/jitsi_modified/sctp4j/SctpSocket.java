@@ -38,6 +38,11 @@ public abstract class SctpSocket
     }
 
     /**
+     * ID for the socket address map
+     */
+    private long id;
+
+    /**
      * Pointer to the native socket counterpart
      */
     protected long ptr;
@@ -63,19 +68,20 @@ public abstract class SctpSocket
     /**
      * The number of current readers of {@link #ptr} which are preventing the
      * writer (i.e. {@link #close()}) from invoking
-     * {@link Sctp#closeSocket(long)}.
+     * {@link Sctp4j#closeSocket(long, long)}.
      */
     private int ptrLockCount = 0;
 
     /**
      * The indicator which determines whether {@link #close()} has been invoked
      * on this <tt>SctpSocket</tt>. It does NOT indicate whether
-     * {@link Sctp#closeSocket(long)} has been invoked with {@link #ptr}.
+     * {@link Sctp4j#closeSocket(long, long)} has been invoked with {@link #ptr}.
      */
     private boolean closed = false;
 
-    public SctpSocket(long ptr)
+    public SctpSocket(long ptr, long id)
     {
+        this.id = id;
         this.ptr = ptr;
     }
 
@@ -153,7 +159,7 @@ public abstract class SctpSocket
         }
         if (ptr != 0)
         {
-            Sctp4j.closeSocket(ptr);
+            Sctp4j.closeSocket(ptr, id);
         }
     }
 
@@ -250,7 +256,7 @@ public abstract class SctpSocket
         }
         if (ptr != 0)
         {
-            Sctp4j.closeSocket(ptr);
+            Sctp4j.closeSocket(ptr, id);
         }
     }
 
