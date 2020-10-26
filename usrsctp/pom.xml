@@ -13,96 +13,124 @@
 
     <artifactId>usrsctp</artifactId>
     <name>usrsctp native library</name>
+    <packaging>jar</packaging>
 
     <!-- This module handles the following:
-    1) run ./bootstrap in usrsctp
-    2) run ./configure (with the option below) in usrsctp
-    3) run make in usrsctp
-    4) assemble the built libs and headers into a zip file that can be depended on by others (see the jniwrapper-native
-    module)
+    1) compiles usrsctp with CMake for current platform;
+    2) assemble headers and static library into platform-specific artifact, which later used by jniwrapper-native
+       to provide final shared library with JNI functions.
     It assumes:
-    1) A checkout of the usrsctp src has been done within src/native/usrsctp (i.e. after clone src/native/usrsctp/usrsctp
-    will exist) -->
+    1) CMake and C compiler and linker are installed on target system -->
 
     <properties>
-        <usrsctp_dir>usrsctp</usrsctp_dir>
+        <usrsctp_source_dir>${project.basedir}/usrsctp</usrsctp_source_dir>
+        <usrsctp_cmake_build_dir>${project.build.directory}/usrsctp_cmake/${maven_platform_classifier}/build</usrsctp_cmake_build_dir>
+        <usrsctp_cmake_install_dir>${project.build.directory}/usrsctp_cmake/${maven_platform_classifier}/install</usrsctp_cmake_install_dir>
+        <!-- Allow install and deploy target to execute only if something useful is build -->
+        <maven.install.skip>true</maven.install.skip>
+        <!-- usrsctp library is deployed as part of jnilib.jar by being embedded with maven assembly plugin -->
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
-    <!-- usrsctp is only bootstrap'd, configure'd and make'd if '-DbuildSctp' is passed -->
+    <!-- usrsctp is only compiled if profile is enabled, e.g '-Pbuild-usrsctp' is passed to maven -->
     <profiles>
         <profile>
-            <id>build usrsctp</id>
-            <activation>
-                <property>
-                    <name>buildSctp</name>
-                </property>
-            </activation>
+            <id>build-usrsctp</id>
+            <properties>
+                <maven.install.skip>false</maven.install.skip>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
                         <!-- Use exec plugin to call make, to build or clean library for Linux	-->
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.6.0</version>
                         <executions>
                             <execution>
-                                <id>bootstrap</id>
-                                <phase>compile</phase>
-                                <goals><goal>exec</goal></goals>
+                                <id>cmake-prepare-build-dir</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
                                 <configuration>
-                                    <workingDirectory>${usrsctp_dir}</workingDirectory>
-                                    <executable>./bootstrap</executable>
+                                    <executable>cmake</executable>
+                                    <arguments>
+                                        <argument>-E</argument>
+                                        <argument>make_directory</argument>
+                                        <argument>${usrsctp_cmake_build_dir}</argument>
+                                    </arguments>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>configure</id>
-                                <phase>compile</phase>
-                                <goals><goal>exec</goal></goals>
+                                <id>cmake-generate-build-files</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
                                 <configuration>
-                                    <workingDirectory>${usrsctp_dir}</workingDirectory>
-                                    <executable>./configure</executable>
+                                    <workingDirectory>${usrsctp_cmake_build_dir}</workingDirectory>
+                                    <executable>cmake</executable>
                                     <arguments>
-                                        <argument>--with-pic</argument>
-                                        <argument>--enable-invariants</argument>
+                                        <argument>-DCMAKE_BUILD_TYPE=RelWithDebInfo</argument>
+                                        <argument>-DCMAKE_POSITION_INDEPENDENT_CODE=ON</argument>
+                                        <argument>-Dsctp_invariants=OFF</argument>
+                                        <argument>-Dsctp_inet=OFF</argument>
+                                        <argument>-Dsctp_inet6=OFF</argument>
+                                        <argument>-Dsctp_debug=OFF</argument>
+                                        <argument>-Dsctp_build_programs=OFF</argument>
+                                        <argument>-Dsctp_build_fuzzer=OFF</argument>
+                                        <argument>${cmake_generator_platform}</argument>
+                                        <argument>-DCMAKE_C_FLAGS='${cmake_c_flags} -UINET6 -UINET'</argument>
+                                        <argument>-DCMAKE_INSTALL_PREFIX=${usrsctp_cmake_install_dir}</argument>
+                                        <argument>${usrsctp_source_dir}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
                             <execution>
                                 <!-- Make all in the Maven compile phase -->
-                                <id>buildlib</id>
+                                <id>cmake-build</id>
                                 <phase>compile</phase>
-                                <goals><goal>exec</goal></goals>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
                                 <configuration>
-                                    <workingDirectory>${usrsctp_dir}</workingDirectory>
-                                    <executable>make</executable>
+                                    <workingDirectory>${usrsctp_cmake_build_dir}</workingDirectory>
+                                    <executable>cmake</executable>
                                     <arguments>
-                                        <argument>all</argument>
+                                        <argument>--build</argument>
+                                        <argument>.</argument>
+                                        <argument>--config</argument>
+                                        <argument>RelWithDebInfo</argument>
+                                        <argument>--target</argument>
+                                        <argument>install</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
                             <execution>
                                 <!-- Make clean in the Maven clean phase -->
-                                <id>cleanlib</id>
+                                <id>cmake-clean</id>
                                 <phase>clean</phase>
-                                <goals><goal>exec</goal></goals>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
                                 <configuration>
-                                    <workingDirectory>${usrsctp_dir}</workingDirectory>
-                                    <executable>make</executable>
+                                    <executable>cmake</executable>
                                     <arguments>
-                                        <argument>clean</argument>
+                                        <argument>-E</argument>
+                                        <argument>remove_directory</argument>
+                                        <argument>${usrsctp_cmake_build_dir}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
                         </executions>
                     </plugin>
                     <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-assembly-plugin</artifactId>
-                        <version>3.1.0</version>
-
                         <configuration>
                             <descriptors>
                                 <!-- Assembly contents are defined in this file -->
-                                <descriptor>javalibs.xml</descriptor>
+                                <descriptor>assembly.xml</descriptor>
                             </descriptors>
                         </configuration>
                         <executions>
@@ -120,4 +148,39 @@
             </build>
         </profile>
     </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                            <goal>validateRevision</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dotGitDirectory>${usrsctp_source_dir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                    <excludeProperties>
+                        <excludeProperty>git.user.*</excludeProperty>
+                        <excludeProperty>git.build.user.*</excludeProperty>
+                    </excludeProperties>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

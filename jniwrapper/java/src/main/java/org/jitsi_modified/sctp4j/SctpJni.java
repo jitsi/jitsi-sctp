@@ -21,17 +21,39 @@ import cz.adamh.utils.NativeUtils;
 public class SctpJni {
     static {
         // Load the native library
+        loadJniLibrary();
+    }
+
+    private static void loadJniLibrary() {
         try {
-            String os = System.getProperty("os.name");
-            if (os.toLowerCase().contains("mac")) {
+            try {
+                // Prefer user-provided library over bundled into Jar
+                System.loadLibrary("jnisctp");
+                return;
+            }
+            catch (UnsatisfiedLinkError e) {
+                System.out.println("SCTP JNI load: unable to load jnsctcp by System.loadLibrary(String libname) " +
+                        "will extract library from JAR");
+            }
+
+            final String os = canonicalOsName();
+            if (os == null) {
+                throw new Exception("Unsupported OS: " + System.getProperty("os.name"));
+            }
+            final String arch = canonicalCpuArch();
+            if (arch == null) {
+                throw new Exception("Unsupported CPU architecture: " + System.getProperty("os.arch"));
+            }
+
+            if (os.contains("osx")) {
                 System.out.println("SCTP JNI load: Mac OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
-            } else if (os.toLowerCase().contains("linux")) {
+                NativeUtils.loadLibraryFromJar(String.format("/lib/%s-%s/libjnisctp.jnilib", os, arch));
+            } else if (os.contains("linux")) {
                 System.out.println("SCTP JNI load: Linux OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/linux/libjnisctp.so");
-            } else if (os.toLowerCase().contains("freebsd")) {
-                System.out.println("SCTP JNI load: FreeBSD OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/freebsd/libjnisctp.so");
+                NativeUtils.loadLibraryFromJar(String.format("/lib/%s-%s/libjnisctp.so", os, arch));
+            } else if (os.contains("windows")) {
+                System.out.println("SCTP JNI load: Windows OS detected");
+                NativeUtils.loadLibraryFromJar(String.format("/lib/%s-%s/jnisctp.dll", os, arch));
             } else {
                 throw new Exception("Unsupported OS: " + os);
             }
@@ -39,6 +61,55 @@ public class SctpJni {
         } catch (Exception e) {
             System.out.println("Error loading native library: " + e);
         }
+    }
+
+    private static String canonicalOsName() {
+
+        final String os = System
+            .getProperty("os.name")
+            .toLowerCase()
+            .trim()
+            .replaceAll("[^0-9a-z]", "");
+
+        if (os.contains("mac")) {
+            return "osx";
+        }
+        if (os.contains("linux")) {
+            return "linux";
+        }
+        if (os.contains("freebsd")) {
+            return "freebsd";
+        }
+        if (os.contains("windows")) {
+            return "windows";
+        }
+        // not yet supported
+        return null;
+    }
+
+    private static String canonicalCpuArch() {
+        // Checks are borrowed from:
+        // https://github.com/trustin/os-maven-plugin/blob/master/src/main/java/kr/motd/maven/os/Detector.java#L178
+        final String arch = System
+            .getProperty("os.arch")
+            .toLowerCase()
+            .trim()
+            .replaceAll("[^0-9a-z]", "");
+
+        if (arch.matches("^(x8664|amd64|ia32e|em64t|x64)$")) {
+            return "x86_64";
+        }
+        if (arch.matches("^(x8632|x86|i[3-6]86|ia32|x32)$")) {
+            return "x86_32";
+        }
+        if (arch.matches("^(arm|arm32)$")) {
+            return "arm_32";
+        }
+        if ("aarch64".equals(arch)) {
+            return "aarch_64";
+        }
+        // not yet supported
+        return null;
     }
 
     public static IncomingSctpDataHandler incomingSctpDataHandler = null;

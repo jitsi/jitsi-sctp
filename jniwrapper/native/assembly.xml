@@ -1,0 +1,27 @@
+<assembly>
+    <!-- Dependent projects will use this id as the classifier to match this assembly -->
+    <id>${maven_platform_classifier}</id>
+    <formats>
+        <format>jar</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>${jnisctp_cmake_install_dir}</directory>
+            <includes>
+                <include>**/*.dll</include>
+                <include>**/*.pdb</include>
+                <include>**/*.so</include>
+                <include>**/*.jnilib</include>
+            </includes>
+            <outputDirectory>lib/${maven_platform_classifier}</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}</directory>
+            <includes>
+                <include>pom.xml</include>
+            </includes>
+            <outputDirectory>META-INF/maven/${project.groupId}/${project.artifactId}/</outputDirectory>
+        </fileSet>
+    </fileSets>
+    <includeBaseDirectory>false</includeBaseDirectory>
+</assembly>
