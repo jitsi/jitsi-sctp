@@ -47,7 +47,9 @@
                 <version>3.0.0-M5</version>
                 <configuration>
 		    <!-- Don't choke when Sctp4j writes to stdout. -->
+		    <!-- TODO: this is broken in maven-surefire-plugin 3.0.0-M5 - wait until -M6
 		    <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
+		    -->
                 </configuration>
             </plugin>
         </plugins>
