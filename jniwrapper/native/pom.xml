@@ -38,6 +38,7 @@
                     -lpthread
                 </linkStartOpts>
                 <linkEndOpts></linkEndOpts>
+		<nativeLibDir>${os}</nativeLibDir>
             </properties>
         </profile>
         <profile>
@@ -62,6 +63,7 @@
                      -Wl,-Bdynamic
                      -lpthread
                 </linkEndOpts>
+		<nativeLibDir>${os}-${os.arch}</nativeLibDir>
             </properties>
         </profile>
         <profile>
@@ -86,6 +88,23 @@
                      -Wl,-Bdynamic
                      -lpthread
                 </linkEndOpts>
+		<nativeLibDir>${os}-${os.arch}</nativeLibDir>
+            </properties>
+        </profile>
+        <profile>
+            <!-- for reasons I don't understand, depending on the JDK version,
+             sometimes ${java.home} ends in ../jre, and sometimes it doesn't.
+             Because the default jdkIncludePath is ${java.home}/../include,
+             we need to override its value in cases where it doesn't end in jre. -->
+            <id>set-custom-jdkIncludePath</id>
+            <activation>
+                <file>
+                    <missing>${java.home}/../include</missing>
+                    <exists>${java.home}/include</exists>
+                </file>
+            </activation>
+            <properties>
+                <jdkIncludePath>${java.home}/include</jdkIncludePath>
             </properties>
         </profile>
         <profile>
@@ -114,7 +133,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>native-maven-plugin</artifactId>
-                        <version>1.0-alpha-9</version>
+                        <version>1.0-alpha-11</version>
                         <extensions>true</extensions>
                         <executions>
                             <execution>
@@ -138,6 +157,7 @@
                             <javahClassNames>
                                 <javahClassName>org.jitsi_modified.sctp4j.SctpJni</javahClassName>
                             </javahClassNames>
+                            <jdkIncludePath>${jdkIncludePath}</jdkIncludePath>
                             <javahOS>${os}</javahOS>
 
                             <sources>
@@ -198,7 +218,7 @@
                                     <executable>cp</executable>
                                     <arguments>
                                         <argument>libjnisctp-${os}-${os.arch}.${libextension}</argument>
-                                        <argument>${project.basedir}/src/main/resources/lib/${os}/libjnisctp.${libextension}</argument>
+                                        <argument>${project.basedir}/src/main/resources/lib/${nativeLibDir}/libjnisctp.${libextension}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

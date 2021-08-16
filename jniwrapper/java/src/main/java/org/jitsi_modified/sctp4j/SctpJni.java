@@ -23,15 +23,16 @@ public class SctpJni {
         // Load the native library
         try {
             String os = System.getProperty("os.name");
+	    String arch = System.getProperty("os.arch");
             if (os.toLowerCase().contains("mac")) {
                 System.out.println("SCTP JNI load: Mac OS detected");
                 NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
             } else if (os.toLowerCase().contains("linux")) {
                 System.out.println("SCTP JNI load: Linux OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/linux/libjnisctp.so");
+                NativeUtils.loadLibraryFromJar("/lib/linux-" + arch + "/libjnisctp.so");
             } else if (os.toLowerCase().contains("freebsd")) {
                 System.out.println("SCTP JNI load: FreeBSD OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/freebsd/libjnisctp.so");
+                NativeUtils.loadLibraryFromJar("/lib/freebsd-" + arch + "/libjnisctp.so");
             } else {
                 throw new Exception("Unsupported OS: " + os);
             }
