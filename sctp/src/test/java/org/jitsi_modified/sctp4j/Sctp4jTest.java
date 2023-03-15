@@ -16,6 +16,7 @@
 
 package org.jitsi_modified.sctp4j;
 
+import org.jitsi.utils.logging2.*;
 import org.jitsi_modified.sctp4j.util.SctpParser;
 import org.junit.Test;
 
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeoutException;
 
 
 public class Sctp4jTest {
+    private final Logger logger = new LoggerImpl(Sctp4jTest.class.getName());
     @Test
     public void testInit() {
         // Very basic test to verify that everything has been linked up correctly
@@ -40,8 +42,8 @@ public class Sctp4jTest {
     public void basicLoop() throws InterruptedException, TimeoutException, ExecutionException {
         Sctp4j.init(5000);
 
-        final SctpServerSocket server = Sctp4j.createServerSocket(4242);
-        final SctpClientSocket client = Sctp4j.createClientSocket(4243);
+        final SctpServerSocket server = Sctp4j.createServerSocket(4242, logger);
+        final SctpClientSocket client = Sctp4j.createClientSocket(4243, logger);
 
         server.outgoingDataSender = (data, offset, length) -> {
             new Thread(() -> {
