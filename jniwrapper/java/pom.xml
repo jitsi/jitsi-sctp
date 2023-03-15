@@ -14,6 +14,13 @@
     <artifactId>jniwrapper-java</artifactId>
     <name>usrsctp JNI wrapper (Java code)</name>
 
+    <dependencies>
+      <dependency>
+            <groupId>org.jitsi</groupId>
+            <artifactId>jitsi-utils</artifactId>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
