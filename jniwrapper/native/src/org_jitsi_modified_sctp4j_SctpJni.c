@@ -53,6 +53,15 @@ connectSctp(SctpSocket *sctpSocket, int remotePort);
 static void
 debugSctpPrintf(const char *format, ...);
 
+static void
+infoSctpPrintf(const char *format, ...);
+
+static void
+errorSctpPrintf(const char *format, ...);
+
+static void
+sctpPError(const char* message);
+
 void
 getSctpSockAddr(struct sockaddr_conn *sconn, void *addr, int port);
 
@@ -78,6 +87,9 @@ static int SCTP_EVENT_TYPES[]
 static jclass Sctp_clazz = 0;
 static jmethodID Sctp_receiveCb = 0;
 static jmethodID Sctp_sendCb = 0;
+static jmethodID Sctp_logDebugCb = 0;
+static jmethodID Sctp_logInfoCb = 0;
+static jmethodID Sctp_logErrorCb = 0;
 /** The global, cached pointer to the Invocation API function table. */
 static JavaVM *Sctp_vm = NULL;
 
@@ -189,7 +201,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1init
      * First argument is udp_encapsulation_port which is not relevant to our
      * AF_CONN use of SCTP.
      */
-    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c calling init\n");
+    infoSctpPrintf("org_jitsi_modified_sctp4j_SctpJni.c calling init\n");
     usrsctp_init((uint16_t) port, onSctpOutboundPacket, debugSctpPrintf);
 
     // Note: this code MUST be called after the call to usrsctp_init, above, as part of that
@@ -224,11 +236,11 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1listen
     if (usrsctp_bind(sctpSocket->so, (struct sockaddr *) psconn, sizeof(sconn))
             < 0)
     {
-        perror("usrsctp_bind");
+        sctpPError("usrsctp_bind");
     }
     /* Make server side passive. */
     if (usrsctp_listen(sctpSocket->so, 1) < 0)
-        perror("usrsctp_listen");
+        sctpPError("usrsctp_listen");
 }
 
 /*
@@ -278,7 +290,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1send
         r = -1;
     }
     if (r < 0)
-        perror("Sctp send error: ");
+        sctpPError("Sctp send error: ");
     return (jint) r;
 }
 
@@ -304,7 +316,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
     sctpSocket = malloc(sizeof(SctpSocket));
     if (sctpSocket == NULL)
     {
-        perror("Out of memory!");
+        sctpPError("Out of memory!");
         return 0;
     }
 
@@ -323,7 +335,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
                 id);
     if (so == NULL)
     {
-        perror("usrsctp_socket");
+        sctpPError("usrsctp_socket");
         free(sctpSocket);
         return 0;
     }
@@ -332,7 +344,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
     // the thread waiting for the socket operation to complete.
     if (usrsctp_set_non_blocking(so, 1) < 0)
     {
-        perror("Failed to set SCTP to non blocking.");
+        sctpPError("Failed to set SCTP to non blocking.");
         free(sctpSocket);
         return 0;
     }
@@ -345,7 +357,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
     if (usrsctp_setsockopt(so, SOL_SOCKET, SO_LINGER, &linger_opt,
                            sizeof(linger_opt)))
     {
-        perror("Failed to set SO_LINGER.");
+        sctpPError("Failed to set SO_LINGER.");
         free(sctpSocket);
         return 0;
     }
@@ -356,7 +368,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
     if (usrsctp_setsockopt(so, IPPROTO_SCTP, SCTP_ENABLE_STREAM_RESET,
                            &stream_rst, sizeof(stream_rst)))
     {
-        perror("Failed to set SCTP_ENABLE_STREAM_RESET.");
+        sctpPError("Failed to set SCTP_ENABLE_STREAM_RESET.");
         free(sctpSocket);
         return 0;
     }
@@ -365,7 +377,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
     if (usrsctp_setsockopt(so, IPPROTO_SCTP, SCTP_NODELAY, &nodelay,
                            sizeof(nodelay)))
     {
-        perror("Failed to set SCTP_NODELAY.");
+        sctpPError("Failed to set SCTP_NODELAY.");
         free(sctpSocket);
         return 0;
     }
@@ -381,7 +393,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1socket
         if (usrsctp_setsockopt(so, IPPROTO_SCTP, SCTP_EVENT, &ev, sizeof(ev))
                 < 0)
         {
-            printf("Failed to set SCTP_EVENT type: %i\n", ev.se_type);
+            errorSctpPrintf("Failed to set SCTP_EVENT type: %i\n", ev.se_type);
             free(sctpSocket);
             return 0;
         }
@@ -425,14 +437,41 @@ JNI_OnLoad(JavaVM *vm, void *reserved)
 
                 if (sendCb)
                 {
-                    clazz = (*env)->NewGlobalRef(env, clazz);
-                    if (clazz)
+                    jmethodID logDebugCb
+                        = (*env)->GetStaticMethodID(
+                               env,
+                               clazz,
+                               "logDebug",
+                               "(Ljava/lang/String;)V");
+
+                    jmethodID logInfoCb
+                        = (*env)->GetStaticMethodID(
+                               env,
+                               clazz,
+                               "logInfo",
+                               "(Ljava/lang/String;)V");
+
+                    jmethodID logErrorCb
+                        = (*env)->GetStaticMethodID(
+                               env,
+                               clazz,
+                               "logError",
+                               "(Ljava/lang/String;)V");
+
+                    if (logDebugCb && logInfoCb && logErrorCb)
                     {
-                        Sctp_clazz = clazz;
-                        Sctp_receiveCb = receiveCb;
-                        Sctp_sendCb = sendCb;
-                        Sctp_vm = vm;
-                        r = JNI_VERSION_1_4;
+                        clazz = (*env)->NewGlobalRef(env, clazz);
+                        if (clazz)
+                        {
+                            Sctp_clazz = clazz;
+                            Sctp_receiveCb = receiveCb;
+                            Sctp_sendCb = sendCb;
+                            Sctp_logDebugCb = logDebugCb;
+                            Sctp_logInfoCb = logInfoCb;
+                            Sctp_logErrorCb = logErrorCb;
+                            Sctp_vm = vm;
+                            r = JNI_VERSION_1_4;
+                        }
                     }
                 }
             }
@@ -449,6 +488,9 @@ JNI_OnUnload(JavaVM *vm, void *reserved)
     Sctp_clazz = 0;
     Sctp_receiveCb = 0;
     Sctp_sendCb = 0;
+    Sctp_logDebugCb = 0;
+    Sctp_logInfoCb = 0;
+    Sctp_logErrorCb = 0;
     Sctp_vm = NULL;
 
     if (clazz)
@@ -522,17 +564,17 @@ callOnSctpInboundPacket
             }
             else
             {
-                printf("Failed to get onSctpInboundPacket method\n");
+                errorSctpPrintf("Failed to get onSctpInboundPacket method\n");
             }
         }
         else
         {
-            printf("Failed to get SCTP class\n");
+            errorSctpPrintf("Failed to get SCTP class\n");
         }
     }
     else
     {
-        printf("Failed to attach new thread\n");
+        errorSctpPrintf("Failed to attach new thread\n");
     }
 }
 
@@ -589,17 +631,17 @@ callOnSctpOutboundPacket
             }
             else
             {
-                printf("Failed to get onSctpInboundPacket method\n");
+                errorSctpPrintf("Failed to get onSctpInboundPacket method\n");
             }
         }
         else
         {
-            printf("Failed to get SCTP class\n");
+            errorSctpPrintf("Failed to get SCTP class\n");
         }
     }
     else
     {
-        printf("Failed to attach new thread\n");
+        errorSctpPrintf("Failed to attach new thread\n");
     }
     return r;
 }
@@ -617,7 +659,7 @@ connectSctp(SctpSocket *sctpSocket, int remotePort)
     getSctpSockAddr(psconn, sctpSocket->id, sctpSocket->localPort);
     if (usrsctp_bind(so, (struct sockaddr *) psconn, sizeof(sconn)) < 0)
     {
-        perror("usrsctp_bind");
+        sctpPError("usrsctp_bind");
         return 0;
     }
 
@@ -626,22 +668,85 @@ connectSctp(SctpSocket *sctpSocket, int remotePort)
         = usrsctp_connect(so, (struct sockaddr *) psconn, sizeof(sconn));
     if (connect_result < 0 && errno != EINPROGRESS)
     {
-        perror("usrsctp_connect");
+        sctpPError("usrsctp_connect");
         return 0;
     }
 
     return 1;
 }
 
+static int
+logSctpVPrintf(jmethodID logCb, const char* format, va_list args)
+{
+    char buf[1024];
+
+    JavaVM *vm = Sctp_vm;
+    JNIEnv *env;
+
+    vsnprintf(buf, sizeof(buf), format, args);
+
+    if (vm
+            && (*vm)->AttachCurrentThreadAsDaemon(
+                    vm,
+                    (void **) &env,
+                    /* args */ NULL)
+                == JNI_OK)
+    {
+        jclass clazz = Sctp_clazz;
+
+        if (clazz && logCb)
+        {
+            jstring message = (*env)->NewStringUTF(env, buf);
+
+            (*env)->CallStaticVoidMethod(
+                 env,
+                 clazz,
+                 logCb,
+                 message);
+
+            (*env)->DeleteLocalRef(env, message);
+
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 static void
 debugSctpPrintf(const char *format, ...)
 {
     va_list args;
-
     va_start(args, format);
-    vprintf(format, args);
+    logSctpVPrintf(Sctp_logDebugCb, format, args);
     va_end(args);
-    fflush(stdout);
+}
+
+static void
+infoSctpPrintf(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    logSctpVPrintf(Sctp_logInfoCb, format, args);
+    va_end(args);
+}
+
+static void
+errorSctpPrintf(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    if (!logSctpVPrintf(Sctp_logErrorCb, format, args)) {
+        /* Log errors to stdout if JNI doesn't work */
+        vprintf(format, args);
+    }
+    va_end(args);
+}
+
+static void
+sctpPError(const char* message)
+{
+    errorSctpPrintf("%s: %s\n", message, strerror(errno));
 }
 
 void

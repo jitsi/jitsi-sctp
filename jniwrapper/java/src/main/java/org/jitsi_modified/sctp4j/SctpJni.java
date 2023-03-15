@@ -172,4 +172,31 @@ public class SctpJni {
         // FIXME handle tos and set_df
         return -1;
     }
+
+    /**
+     * Method fired by native counterpart to log a debug message.
+     * @param message the message to log
+     */
+    public static void logDebug(String message) {
+        message = message.trim();
+        logger.debug(message);
+    }
+
+    /**
+     * Method fired by native counterpart to log an informational message.
+     * @param message the message to log
+     */
+    public static void logInfo(String message) {
+        message = message.trim();
+        logger.info(message);
+    }
+
+    /**
+     * Method fired by native counterpart to log an error message.
+     * @param message the message to log
+     */
+    public static void logError(String message) {
+        message = message.trim();
+        logger.error(message);
+    }
 }
