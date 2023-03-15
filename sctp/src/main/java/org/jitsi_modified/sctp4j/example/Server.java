@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
 
 public class Server {
     public static void main(String[] args) throws UnknownHostException, SocketException, ExecutionException, InterruptedException {
-        Logger logger = new LoggerImpl(Client.class.getName());
+        Logger logger = new LoggerImpl(Server.class.getName());
 
         Sctp4j.init(5000);
 
