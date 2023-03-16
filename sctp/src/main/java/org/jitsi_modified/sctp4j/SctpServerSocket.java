@@ -16,6 +16,8 @@
 
 package org.jitsi_modified.sctp4j;
 
+import org.jitsi.utils.logging2.*;
+
 import java.io.*;
 
 /**
@@ -28,9 +30,9 @@ public class SctpServerSocket extends SctpSocket
 {
     private boolean accepted = false;
 
-    public SctpServerSocket(long ptr, long id)
+    public SctpServerSocket(long ptr, long id, Logger parentLogger)
     {
-        super(ptr, id);
+        super(ptr, id, parentLogger);
     }
 
     /**
@@ -46,7 +48,7 @@ public class SctpServerSocket extends SctpSocket
         }
         catch (IOException ioe)
         {
-            System.out.println("Server socket can't listen: " + ioe.getMessage());
+            logger.error("Server socket can't listen: ", ioe);
             return;
         }
 
@@ -96,7 +98,7 @@ public class SctpServerSocket extends SctpSocket
         }
         catch (IOException ioe)
         {
-            System.out.println("Server can't accept: " + ioe.getMessage());
+            logger.error("Server can't accept: ", ioe);
             return ret;
         }
 

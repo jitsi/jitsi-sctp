@@ -16,6 +16,8 @@
 
 package org.jitsi_modified.sctp4j;
 
+import org.jitsi.utils.logging2.*;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
@@ -31,6 +33,9 @@ import java.util.concurrent.atomic.*;
  */
 public class Sctp4j {
     private static boolean initialized = false;
+
+    private static final Logger classLogger = new LoggerImpl(Sctp4j.class.toString());
+
     /**
      * https://github.com/sctplab/usrsctp/blob/master/Manual.md#usrsctp_init
      */
@@ -55,11 +60,6 @@ public class Sctp4j {
     {
         SctpJni.usrsctp_close(ptr);
         sockets.remove(id);
-    }
-
-    private static void log(String s)
-    {
-        System.out.println(s);
     }
 
     /**
@@ -99,7 +99,7 @@ public class Sctp4j {
         }
         else
         {
-            log("No socket found in onSctpIncomingData");
+            classLogger.error("No socket found in onSctpIncomingData");
         }
     }
 
@@ -122,7 +122,7 @@ public class Sctp4j {
         }
         else
         {
-            log("No socket found in onOutgoingSctpData");
+            classLogger.error("No socket found in onOutgoingSctpData");
         }
         return -1;
     }
@@ -133,16 +133,16 @@ public class Sctp4j {
      * @param localSctpPort
      * @return
      */
-    public static SctpServerSocket createServerSocket(int localSctpPort)
+    public static SctpServerSocket createServerSocket(int localSctpPort, Logger parentLogger)
     {
         long id = nextId.getAndIncrement();
         long ptr = SctpJni.usrsctp_socket(localSctpPort, id);
         if (ptr == 0)
         {
-            log("Failed to create server socket");
+            parentLogger.error("Failed to create server socket");
             return null;
         }
-        SctpServerSocket socket = new SctpServerSocket(ptr, id);
+        SctpServerSocket socket = new SctpServerSocket(ptr, id, parentLogger);
         sockets.put(id, socket);
 
         return socket;
@@ -155,16 +155,16 @@ public class Sctp4j {
      * @param localSctpPort
      * @return
      */
-    public static SctpClientSocket createClientSocket(int localSctpPort)
+    public static SctpClientSocket createClientSocket(int localSctpPort, Logger parentLogger)
     {
         long id = nextId.getAndIncrement();
         long ptr = SctpJni.usrsctp_socket(localSctpPort, id);
         if (ptr == 0)
         {
-            log("Failed to create client socket");
+            parentLogger.error("Failed to create client socket");
             return null;
         }
-        SctpClientSocket socket = new SctpClientSocket(ptr, id);
+        SctpClientSocket socket = new SctpClientSocket(ptr, id, parentLogger);
         sockets.put(id, socket);
 
         return socket;

@@ -17,28 +17,32 @@
 package org.jitsi_modified.sctp4j;
 
 import cz.adamh.utils.NativeUtils;
+import org.jitsi.utils.logging2.*;
 
 public class SctpJni {
+    private static final Logger logger =
+        new LoggerImpl(SctpJni.class.getName());
+
     static {
         // Load the native library
         try {
             String os = System.getProperty("os.name");
 	    String arch = System.getProperty("os.arch");
             if (os.toLowerCase().contains("mac")) {
-                System.out.println("SCTP JNI load: Mac OS detected");
+                logger.info("SCTP JNI load: Mac OS detected");
                 NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
             } else if (os.toLowerCase().contains("linux")) {
-                System.out.println("SCTP JNI load: Linux OS detected");
+                logger.info("SCTP JNI load: Linux OS detected");
                 NativeUtils.loadLibraryFromJar("/lib/linux-" + arch + "/libjnisctp.so");
             } else if (os.toLowerCase().contains("freebsd")) {
-                System.out.println("SCTP JNI load: FreeBSD OS detected");
+                logger.info("SCTP JNI load: FreeBSD OS detected");
                 NativeUtils.loadLibraryFromJar("/lib/freebsd-" + arch + "/libjnisctp.so");
             } else {
                 throw new Exception("Unsupported OS: " + os);
             }
-            System.out.println("SCTP lib loaded");
+            logger.info("SCTP lib loaded");
         } catch (Exception e) {
-            System.out.println("Error loading native library: " + e);
+            logger.error("Error loading native library: ", e);
         }
     }
 
@@ -167,5 +171,32 @@ public class SctpJni {
         }
         // FIXME handle tos and set_df
         return -1;
+    }
+
+    /**
+     * Method fired by native counterpart to log a debug message.
+     * @param message the message to log
+     */
+    public static void logDebug(String message) {
+        message = message.trim();
+        logger.debug(message);
+    }
+
+    /**
+     * Method fired by native counterpart to log an informational message.
+     * @param message the message to log
+     */
+    public static void logInfo(String message) {
+        message = message.trim();
+        logger.info(message);
+    }
+
+    /**
+     * Method fired by native counterpart to log an error message.
+     * @param message the message to log
+     */
+    public static void logError(String message) {
+        message = message.trim();
+        logger.error(message);
     }
 }

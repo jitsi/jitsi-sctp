@@ -16,6 +16,7 @@
 
 package org.jitsi_modified.sctp4j.example;
 
+import org.jitsi.utils.logging2.*;
 import org.jitsi_modified.sctp4j.*;
 
 import java.io.IOException;
@@ -26,6 +27,8 @@ import java.util.concurrent.ExecutionException;
 
 public class Client {
     public static void main(String[] args) throws UnknownHostException, SocketException, ExecutionException, InterruptedException {
+        Logger logger = new LoggerImpl(Client.class.getName());
+
         Sctp4j.init(5000);
 
         InetAddress localAddr = InetAddress.getByName("127.0.0.1");
@@ -38,7 +41,7 @@ public class Client {
 
         DatagramSocket socket = new DatagramSocket(localPort, localAddr);
 
-        final SctpClientSocket client = Sctp4j.createClientSocket(localSctpPort);
+        final SctpClientSocket client = Sctp4j.createClientSocket(localSctpPort, logger);
         CompletableFuture<String> dataReceived = new CompletableFuture<>();
         client.outgoingDataSender = (data, offset, length) -> {
             DatagramPacket packet = new DatagramPacket(data, offset, length, remoteAddr, remotePort);

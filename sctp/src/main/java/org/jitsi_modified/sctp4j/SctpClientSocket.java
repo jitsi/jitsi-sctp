@@ -16,6 +16,8 @@
 
 package org.jitsi_modified.sctp4j;
 
+import org.jitsi.utils.logging2.*;
+
 import java.io.*;
 
 /**
@@ -23,9 +25,9 @@ import java.io.*;
  */
 public class SctpClientSocket extends SctpSocket
 {
-    public SctpClientSocket(long ptr, long id)
+    public SctpClientSocket(long ptr, long id, Logger parentLogger)
     {
-        super(ptr, id);
+        super(ptr, id, parentLogger);
     }
 
     /**

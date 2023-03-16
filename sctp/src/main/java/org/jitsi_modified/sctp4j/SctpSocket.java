@@ -16,6 +16,9 @@
 
 package org.jitsi_modified.sctp4j;
 
+import org.jetbrains.annotations.*;
+import org.jitsi.utils.logging2.*;
+
 import java.io.*;
 import java.nio.*;
 
@@ -79,8 +82,14 @@ public abstract class SctpSocket
      */
     private boolean closed = false;
 
-    public SctpSocket(long ptr, long id)
+    /**
+     * The logger to use for log messages.  Public so it can be used by static JNI code.
+     */
+    public final Logger logger;
+
+    public SctpSocket(long ptr, long id, @NotNull Logger parentLogger)
     {
+        logger = parentLogger.createChildLogger(this.getClass().getName());
         this.id = id;
         this.ptr = ptr;
     }
@@ -188,20 +197,20 @@ public abstract class SctpSocket
         {
             SctpNotification.AssociationChange associationChange
                     = (SctpNotification.AssociationChange)notification;
-            System.out.println(
+            logger.info(
                 "Got sctp association state update: " + associationChange.state);
             switch (associationChange.state)
             {
                 case SctpNotification.AssociationChange.SCTP_COMM_UP:
                 {
                     boolean wasReady = isReady();
-                    System.out.println("sctp is now up.  was ready? " + wasReady);
+                    logger.info("sctp is now up.  was ready=" + wasReady);
                     connected = true;
                     if (isReady() && !wasReady)
                     {
                         if (eventHandler != null)
                         {
-                            System.out.println("sctp invoking onready");
+                            logger.info("sctp invoking onready");
                             eventHandler.onReady();
                         }
                     }
@@ -283,7 +292,7 @@ public abstract class SctpSocket
         }
         catch (IOException ioe)
         {
-            System.out.println("Socket isn't open, ignoring incoming data");
+            logger.error("Socket isn't open, ignoring incoming data");
             return;
         }
 
