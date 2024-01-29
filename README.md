@@ -34,6 +34,11 @@ The JNI lib will need to be rebuilt if there is a change in the usrsctp version 
 jitsi-sctp/usrsctp> git clone https://github.com/sctplab/usrsctp
 (check out whatever hash/version you want)
 ```
+* Or for Jitsi's forked release with PRs that have not yet been upstreamed:
+```
+jitsi-sctp/usrsctp> git clone https://github.com/jitsi/usrsctp
+jitsi-sctp/usrsctp> git checkout jitsi
+```
 * Package everything and denote what should be rebuilt and redeployed.  Here we rebuild the usrsctp libs, rebuild the native wrapper and deploy the newly-built jnilib to the prebuilt libs directory
 ```
 jitsi-sctp> mvn package -DbuildSctp -DbuildNativeWrapper -DdeployNewJnilib
