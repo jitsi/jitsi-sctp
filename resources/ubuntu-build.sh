@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+
+set -x
+set -e
+
+USRSCTPPATH=usrsctp/usrsctp
+JNIPATH=jniwrapper/native/src
+JAVAHPATH=jniwrapper/java/target/native/javah
+OUTPATH=jniwrapper/native/target/classes/lib
+RESOURCESPATH=jniwrapper/native/src/main/resources/lib
+
 if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <ARCH> <JAVA_VERSION> <DIR>"
     echo "  ARCH: Architecture to build for (amd64, arm64, ppc64el)"
@@ -7,62 +17,62 @@ if [ "$#" -ne 3 ]; then
     exit 1
 fi;
 
-USRSCTPPATH=usrsctp/usrsctp
-JNIPATH=jniwrapper/native/src
-JAVAHPATH=jniwrapper/java/target/native/javah
-OUTPATH=jniwrapper/native/target/classes/lib
-RESOURCESPATH=jniwrapper/native/src/main/resources/lib
-
-set -e
-
-ARCH=$1
+DEBARCH=$1
 JAVA_VERSION=$2
 DIR="$3"
 
 cd "$DIR"
 
-case $ARCH in
+case $DEBARCH in
     amd64)
 	GNUARCH=x86_64
-	MACHINEARCH=x86_64
-	JAVAARCH=x86-64
+	JAVAARCH=amd64
+	JNAARCH=x86-64
 	;;
     arm64)
 	GNUARCH=aarch64
-	MACHINEARCH=aarch64
 	JAVAARCH=aarch64
+	JNAARCH=aarch64
 	;;
     ppc64el)
 	GNUARCH=powerpc64le
-	MACHINEARCH=ppc64le
 	JAVAARCH=ppc64el
+	JNAARCH=ppc64le
 	;;
     *)
-	echo "ERROR: Unsupported arch $ARCH!"
+	echo "ERROR: Unsupported arch $DEBARCH!"
 	exit 1
 	;;
 esac
 
-if [ $MACHINEARCH != $(uname -m) ]
+NATIVEDEBARCH=$(dpkg --print-architecture)
+
+if [ $DEBARCH != $NATIVEDEBARCH ]
 then
     PREFIX=$GNUARCH-linux-gnu
+    CONFIGURE_ARGS="--host $PREFIX"
     export CC=$PREFIX-gcc
 else
     export CC=gcc
 fi
 
+NCPU=$(grep -c processor /proc/cpuinfo)
+if [ -n "$NCPU" -a "$NCPU" -gt 1 ]
+then
+    MAKE_ARGS="-j $NCPU"
+fi
 
 cd $USRSCTPPATH
 ./bootstrap
 
-OBJ_DIR=obj-$ARCH
+OBJ_DIR=obj-$DEBARCH
 rm -rf $OBJ_DIR
 mkdir $OBJ_DIR
 cd $OBJ_DIR
-../configure --with-pic --enable-invariants
-make
+../configure --with-pic --enable-invariants $CONFIGURE_ARGS
+make $MAKE_ARGS
 
-export JAVA_HOME=/usr/lib/jvm/java-$JAVA_VERSION-openjdk-$ARCH
+export JAVA_HOME=/usr/lib/jvm/java-$JAVA_VERSION-openjdk-$NATIVEDEBARCH
 echo $JAVA_HOME
 java -version
 
@@ -81,5 +91,7 @@ $CC -shared -L$DIR/$USRSCTPPATH/$OBJ_DIR/usrsctplib/.libs \
     $OUTPATH/$SO_DIR/org_jitsi_modified_sctp4j_SctpJni.o \
     -Wl,-Bstatic -lusrsctp -Wl,-Bdynamic -pthread \
     -o $OUTPATH/$SO_DIR/libjnisctp.so
+
+mkdir -p $RESOURCESPATH/$SO_DIR/
 
 cp $OUTPATH/$SO_DIR/libjnisctp.so $RESOURCESPATH/$SO_DIR/
