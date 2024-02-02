@@ -1,0 +1,4 @@
+[submodule "usrsctp/usrsctp"]
+	path = usrsctp/usrsctp
+	url = https://github.com/jitsi/usrsctp
+	branch = jitsi
