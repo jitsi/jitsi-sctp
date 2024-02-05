@@ -15,7 +15,7 @@ if [ "$#" -ne 3 ]; then
     echo "  JAVA_VERSION: Java version (11)"
     echo "  DIR: sctp4j project directory"
     exit 1
-fi;
+fi
 
 DEBARCH=$1
 JAVA_VERSION=$2
