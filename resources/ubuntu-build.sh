@@ -3,11 +3,11 @@
 set -x
 set -e
 
-USRSCTPPATH=usrsctp/usrsctp
-JNIPATH=jniwrapper/native/src
-JAVAHPATH=jniwrapper/java/target/native/javah
-OUTPATH=jniwrapper/native/target/classes/lib
-RESOURCESPATH=jniwrapper/native/src/main/resources/lib
+USRSCTPPATH=usrsctp
+JNIPATH=src/main/native
+JAVAHPATH=target/native/javah
+OUTPATH=target/classes/lib
+RESOURCESPATH=src/main/resources/lib
 
 if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <ARCH> <JAVA_VERSION> <DIR>"

@@ -5,65 +5,92 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jitsi</groupId>
-    <artifactId>jitsi-sctp</artifactId>
+    <artifactId>sctp</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>bundle</packaging>
+
+    <name>Jitsi Java SCTP library</name>
+    <description>Jitsi SCTP library is a Java wrapper around the usrsctp userspace SCTP library.</description>
+    <url>https://github.com/jitsi/sctp4j</url>
+
+    <organization>
+        <name>jitsi.org</name>
+        <url>https://jitsi.org</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>org.jitsi</id>
+            <name>Jitsi Team</name>
+            <email>dev@jitsi.org</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/jitsi/sctp4j</url>
+        <connection>scm:git:https://github.com/jitsi/sctp4j.git</connection>
+        <developerConnection>scm:git:https://github.com/jitsi/sctp4j.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>https://github.com/jitsi/sctp4j/blob/master/LICENSE</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
-        <jitsi.utils.version>1.0-124-ge57838f</jitsi.utils.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jitsi.utils.version>1.0-129-g22af39b</jitsi.utils.version>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>mac</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                </os>
-            </activation>
-            <properties>
-                <os>darwin</os>
-            </properties>
-        </profile>
-        <profile>
-            <id>linux</id>
-            <activation>
-                <os>
-                    <family>unix</family>
-                    <name>Linux</name>
-                </os>
-            </activation>
-            <properties>
-                <os>linux</os>
-            </properties>
-        </profile>
-        <profile>
-            <id>freebsd</id>
-            <activation>
-                <os>
-                    <family>unix</family>
-                    <name>freebsd</name>
-                </os>
-            </activation>
-            <properties>
-                <os>freebsd</os>
-            </properties>
-        </profile>
-    </profiles>
+    <dependencies>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>jitsi-utils</artifactId>
+        <version>${jitsi.utils.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.1</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
 
-    <modules>
-        <module>usrsctp</module>
-        <module>jniwrapper</module>
-        <module>sctp</module>
-    </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <release>11</release>
+		    <compilerArgs combine.children="append">
+                        <arg>-h</arg>
+                        <arg>${project.build.directory}/native/javah/</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+		    <!-- Don't choke when Sctp4j writes to stdout. -->
+		    <!-- TODO: this is broken in maven-surefire-plugin 3.0.0-M5 - wait until -M6
+		    <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
+		    -->
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>5.1.6</version>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>jitsi-utils</artifactId>
-                <version>${jitsi.utils.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>
