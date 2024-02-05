@@ -16,7 +16,7 @@
 
 package org.jitsi_modified.sctp4j;
 
-import cz.adamh.utils.NativeUtils;
+import org.jitsi.utils.*;
 import org.jitsi.utils.logging2.*;
 
 public class SctpJni {
@@ -26,20 +26,7 @@ public class SctpJni {
     static {
         // Load the native library
         try {
-            String os = System.getProperty("os.name");
-	    String arch = System.getProperty("os.arch");
-            if (os.toLowerCase().contains("mac")) {
-                logger.info("SCTP JNI load: Mac OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/darwin/libjnisctp.jnilib");
-            } else if (os.toLowerCase().contains("linux")) {
-                logger.info("SCTP JNI load: Linux OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/linux-" + arch + "/libjnisctp.so");
-            } else if (os.toLowerCase().contains("freebsd")) {
-                logger.info("SCTP JNI load: FreeBSD OS detected");
-                NativeUtils.loadLibraryFromJar("/lib/freebsd-" + arch + "/libjnisctp.so");
-            } else {
-                throw new Exception("Unsupported OS: " + os);
-            }
+	    JNIUtils.loadLibrary("jnisctp", SctpJni.class.getClassLoader());
             logger.info("SCTP lib loaded");
         } catch (Exception e) {
             logger.error("Error loading native library: ", e);

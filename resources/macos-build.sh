@@ -24,15 +24,18 @@ DIR="$3"
 
 cd "$DIR"
 
+if [ \! -r $JAVAHPATH/org_jitsi_modified_sctp4j_SctpJni.h ]; then
+    echo "$JAVAHPATH/org_jitsi_modified_sctp4j_SctpJni.h not found: did you run mvn compile?"
+    exit 1
+fi
+
 case $ARCH in
     amd64|x86-64|x86_64)
 	CLANGARCH=x86_64
-	JAVAARCH=amd64
 	JNAARCH=x86-64
 	;;
     arm64|aarch64)
 	CLANGARCH=arm64
-	JAVAARCH=aarch64
 	JNAARCH=aarch64
 	;;
     *)
@@ -59,6 +62,10 @@ fi
 
 cd $USRSCTPPATH
 ./bootstrap
+
+if [ -r Makefile ]; then
+    make distclean
+fi
 
 OBJ_DIR=obj-$CLANGARCH
 rm -rf $OBJ_DIR

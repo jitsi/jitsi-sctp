@@ -7,7 +7,7 @@ USRSCTPPATH=usrsctp
 JNIPATH=src/main/native
 JAVAHPATH=target/native/javah
 OUTPATH=target/classes/lib
-RESOURCESPATH=src/main/resources/lib
+RESOURCESPATH=src/main/resources
 
 if [ "$#" -ne 3 ]; then
     echo "Usage: $0 <ARCH> <JAVA_VERSION> <DIR>"
@@ -23,20 +23,22 @@ DIR="$3"
 
 cd "$DIR"
 
+if [ \! -r $JAVAHPATH/org_jitsi_modified_sctp4j_SctpJni.h ]; then
+    echo "$JAVAHPATH/org_jitsi_modified_sctp4j_SctpJni.h not found: did you run mvn compile?"
+    exit 1
+fi
+
 case $DEBARCH in
     amd64)
 	GNUARCH=x86_64
-	JAVAARCH=amd64
 	JNAARCH=x86-64
 	;;
     arm64)
 	GNUARCH=aarch64
-	JAVAARCH=aarch64
 	JNAARCH=aarch64
 	;;
     ppc64el)
 	GNUARCH=powerpc64le
-	JAVAARCH=ppc64el
 	JNAARCH=ppc64le
 	;;
     *)
@@ -65,6 +67,10 @@ fi
 cd $USRSCTPPATH
 ./bootstrap
 
+if [ -r Makefile ]; then
+    make distclean
+fi
+
 OBJ_DIR=obj-$DEBARCH
 rm -rf $OBJ_DIR
 mkdir $OBJ_DIR
@@ -76,8 +82,10 @@ export JAVA_HOME=/usr/lib/jvm/java-$JAVA_VERSION-openjdk-$NATIVEDEBARCH
 echo $JAVA_HOME
 java -version
 
-cd "$DIR"/$OUTPATH
-SO_DIR=linux-$JAVAARCH
+cd "$DIR"
+mkdir -p $OUTPATH
+cd $OUTPATH
+SO_DIR=linux-$JNAARCH
 rm -rf $SO_DIR
 mkdir $SO_DIR
 cd $DIR
