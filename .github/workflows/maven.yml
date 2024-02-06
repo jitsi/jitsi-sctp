@@ -113,7 +113,7 @@ jobs:
         run: brew install autoconf automake libtool
 
       - name: Build natives
-        run: resources/macos-build.sh "${{ steps.install_java.outputs.path }}" "${{ matrix.arch }}"
+        run: resources/macos-build.sh "${{ steps.install_java.outputs.path }}" "${{ matrix.arch }}" "${{ github.workspace }}"
 
       - name: Upload lib as artifact
         uses: actions/upload-artifact@v3
