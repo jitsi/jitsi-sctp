@@ -50,8 +50,8 @@ export CC="xcrun clang -arch $CLANGARCH"
 
 if [ $CLANGARCH = arm64 -a $NATIVEARCH != arm64 ]
 then
-    PREFIX=aarch64-apple-darwin
-    CONFIGURE_ARGS="--host $PREFIX"
+    HOST=aarch64-apple-darwin
+    CONFIGURE_ARGS="--host $HOST"
 fi
 
 NCPU=$(sysctl -n hw.ncpu)

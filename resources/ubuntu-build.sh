@@ -51,9 +51,9 @@ NATIVEDEBARCH=$(dpkg --print-architecture)
 
 if [ $DEBARCH != $NATIVEDEBARCH ]
 then
-    PREFIX=$GNUARCH-linux-gnu
-    CONFIGURE_ARGS="--host $PREFIX"
-    export CC=$PREFIX-gcc
+    HOST=$GNUARCH-linux-gnu
+    CONFIGURE_ARGS="--host $HOST"
+    export CC=$HOST-gcc
 else
     export CC=gcc
 fi
@@ -72,11 +72,12 @@ if [ -r Makefile ]; then
 fi
 
 OBJ_DIR=obj-$DEBARCH
-rm -rf $OBJ_DIR
+INSTALL_DIR=$DIR/$USRSCTPPATH/install-$DEBARCH
+rm -rf $OBJ_DIR $INSTALL_DIR
 mkdir $OBJ_DIR
 cd $OBJ_DIR
-../configure --with-pic --enable-invariants $CONFIGURE_ARGS
-make $MAKE_ARGS
+../configure --with-pic --enable-invariants --prefix=$INSTALL_DIR $CONFIGURE_ARGS
+make $MAKE_ARGS install
 
 export JAVA_HOME=/usr/lib/jvm/java-$JAVA_VERSION-openjdk-$NATIVEDEBARCH
 echo $JAVA_HOME
@@ -91,11 +92,11 @@ mkdir $SO_DIR
 cd $DIR
 $CC -c -g -fPIC -std=c99 -O2 -Wall \
     -I$JAVA_HOME/include -I$JAVA_HOME/include/linux \
-    -I$DIR/$JAVAHPATH -I$DIR/$USRSCTPPATH/usrsctplib \
+    -I$DIR/$JAVAHPATH -I$INSTALL_DIR/include \
     $JNIPATH/org_jitsi_modified_sctp4j_SctpJni.c \
     -o $OUTPATH/$SO_DIR/org_jitsi_modified_sctp4j_SctpJni.o
 
-$CC -shared -L$DIR/$USRSCTPPATH/$OBJ_DIR/usrsctplib/.libs \
+$CC -shared -L$INSTALL_DIR/lib \
     $OUTPATH/$SO_DIR/org_jitsi_modified_sctp4j_SctpJni.o \
     -Wl,-Bstatic -lusrsctp -Wl,-Bdynamic -pthread \
     -o $OUTPATH/$SO_DIR/libjnisctp.so
