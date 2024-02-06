@@ -46,7 +46,7 @@ esac
 
 NATIVEARCH=$(uname -m)
 
-export CC="clang -arch $CLANGARCH"
+export CC="xcrun clang -arch $CLANGARCH"
 
 if [ $CLANGARCH = arm64 -a $NATIVEARCH != arm64 ]
 then
