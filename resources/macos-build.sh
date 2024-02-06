@@ -7,7 +7,7 @@ USRSCTPPATH=usrsctp
 JNIPATH=src/main/native
 JAVAHPATH=target/native/javah
 OUTPATH=target/classes/lib
-RESOURCESPATH=src/main/resources/lib
+RESOURCESPATH=src/main/resources
 
 #!/usr/bin/env bash
 if [ "$#" -ne 3 ]; then
@@ -68,11 +68,12 @@ if [ -r Makefile ]; then
 fi
 
 OBJ_DIR=obj-$CLANGARCH
-rm -rf $OBJ_DIR
+INSTALL_DIR=$DIR/$USRSCTPPATH/install-$CLANGARCH
+rm -rf $OBJ_DIR $INSTALL_DIR
 mkdir $OBJ_DIR
 cd $OBJ_DIR
-../configure --with-pic --enable-invariants $CONFIGURE_ARGS
-make $MAKE_ARGS
+../configure --with-pic --enable-invariants --prefix=$INSTALL_DIR $CONFIGURE_ARGS
+make $MAKE_ARGS install
 
 echo $JAVA_HOME
 java -version
@@ -84,13 +85,13 @@ mkdir $DYLIB_DIR
 cd $DIR
 $CC -c -g -fPIC -std=c99 -O2 -Wall \
     -I$JAVA_HOME/include -I$JAVA_HOME/include/darwin \
-    -I$DIR/$JAVAHPATH -I$DIR/$USRSCTPPATH/usrsctplib \
+    -I$DIR/$JAVAHPATH -I$INSTALL_DIR/include \
     $JNIPATH/org_jitsi_modified_sctp4j_SctpJni.c \
     -o $OUTPATH/$DYLIB_DIR/org_jitsi_modified_sctp4j_SctpJni.o
 
 $CC -shared \
     $OUTPATH/$DYLIB_DIR/org_jitsi_modified_sctp4j_SctpJni.o \
-    $DIR/$USRSCTPPATH/$OBJ_DIR/usrsctplib/.libs/libusrsctp.a \
+    $INSTALL_DIR/lib/libusrsctp.a \
     -o $OUTPATH/$DYLIB_DIR/libjnisctp.dylib
 
 mkdir -p $RESOURCESPATH/$DYLIB_DIR/
