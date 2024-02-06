@@ -13,7 +13,7 @@ To avoid having to build all native libraries,
 execute `resources/fetch-maven.sh` to download and extract the native binaries
 from the latest release on Maven Central.
 
-*TODO*
+**TODO**
 
 
 ### (Re)Building a new JNI lib
@@ -44,7 +44,7 @@ jitsi-sctp> mvn compile
 ```
 jitsi-sctp> resources/ubuntu-build-all.sh
 ```
-## macOS
+### macOS
 
 Prerequisites:
 
