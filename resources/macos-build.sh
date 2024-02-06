@@ -83,7 +83,9 @@ make $MAKE_ARGS install
 echo $JAVA_HOME
 java -version
 
-cd "$DIR"/$OUTPATH
+cd "$DIR"
+mkdir -p $OUTPATH
+cd $OUTPATH
 DYLIB_DIR=darwin-$JNAARCH
 rm -rf $DYLIB_DIR
 mkdir $DYLIB_DIR
