@@ -10,8 +10,8 @@ OUTPATH=target/classes/lib
 RESOURCESPATH=src/main/resources
 
 #!/usr/bin/env bash
-if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <JAVA_HOME> <ARCH> <DIR>"
+if [ "$#" -lt 2 -o "$#" -gt 3 ]; then
+    echo "Usage: $0 <JAVA_HOME> <ARCH> [<DIR>]"
     echo "  JAVA_HOME: Path to Java installation"
     echo "  ARCH: Architecture to build for (x86_64 or arm64)"
     echo "  DIR: sctp4j project directory"
@@ -20,7 +20,12 @@ fi
 
 JAVA_HOME=$1
 ARCH=$2
-DIR="$3"
+
+if [ "$#" -eq 3 ]; then
+    DIR="$3"
+else
+    DIR="$(realpath "$(dirname "$0")/../")"
+fi
 
 cd "$DIR"
 
