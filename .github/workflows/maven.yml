@@ -2,9 +2,9 @@ name: Java CI with Maven and native builds
 
 on:
   push:
-#    branches: [ master ] # TODO
+    branches: [ master ]
   pull_request:
-#    branches: [ master ] $ TODO
+    branches: [ master ]
 
 env:
   # Java version to use for the release
@@ -121,7 +121,7 @@ jobs:
           path: src/main/resources/*
 
   release:
-    name: Test including natives [and release]
+    name: Test including natives and release
     needs:
       - javah
       - ubuntu_natives
@@ -158,5 +158,54 @@ jobs:
             fi;
           done;
 
-      - name: Run Maven tests with native
+      - name: Set version
+        run: |
+          VERSION=`git describe --match "v[0-9\.]*" --long --dirty --always`
+          mvn -B versions:set -DnewVersion=${VERSION:1} -DgenerateBackupPoms=false
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Run Maven tests with native (if PR)
+        if: github.ref != 'refs/heads/master'
+        run: mvn -B verify -DperformRelease=true
+
+      - name: Run maven tests with native (if release)
+        if: github.ref == 'refs/heads/master'
         run: mvn -B verify
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+
+      - name: Attach final jars (if PR)
+        uses: actions/upload-artifact@v4
+        if: github.ref != 'refs/heads/master'
+        with:
+          name: jars
+          path: target/*.jar
+
+      - name: Check out Jitsi Maven repository (if release)
+        if: github.ref == 'refs/heads/master'
+        uses: actions/checkout@v4
+        with:
+          repository: jitsi/jitsi-maven-repository
+          path: jitsi-maven-repository
+
+      - name: Release to Jitsi Maven repository (if release)
+        if: github.ref == 'refs/heads/master'
+        run: |
+           mvn -B source:jar deploy \
+              -DperformRelease=true \
+              -DaltDeploymentRepository=jmrs::default::file://${{ github.workspace }}/jitsi-maven-repository/releases/
+           cd jitsi-maven-repository
+           PROJECT="$(basename "${{ github.repository }}")"
+           MSG="$PROJECT $VERSION"
+           git config --global user.name jitsi-jenkins
+           git config --global user.email "jenkins@jitsi.org"
+           git commit -a -m "$MSG"
+           git push
+
+      - name: Attach final jars (after releasing to Jitsi Maven repository)
+        uses: actions/upload-artifact@v3
+        if: github.ref == 'refs/heads/master'
+        with:
+          name: jars
+          path: target/*.jar
