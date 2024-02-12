@@ -2,7 +2,7 @@ name: Java CI with Maven and native builds
 
 on:
   push:
-    branches: [ master ]
+#    branches: [ master ]
   pull_request:
     branches: [ master ]
 
