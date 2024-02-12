@@ -58,7 +58,7 @@ else
     export CC=gcc
 fi
 
-NCPU=$(grep -c processor /proc/cpuinfo)
+NCPU=$(nproc)
 if [ -n "$NCPU" -a "$NCPU" -gt 1 ]
 then
     MAKE_ARGS="-j $NCPU"
