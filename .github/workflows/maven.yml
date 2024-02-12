@@ -11,7 +11,6 @@ env:
   RELEASE_JAVA_VERSION: 11
   UBUNTU_DIST: focal
   UBUNTU_MIRROR_AMD64: http://azure.archive.ubuntu.com/ubuntu
-  DOCKER_BUILDKIT: 1
 
 concurrency:
   group: ${{ github.ref }}
@@ -99,7 +98,7 @@ jobs:
         id: install_java
         uses: actions/setup-java@v4
         with:
-          distribution: zulu
+          distribution: temurin
           java-version: ${{ env.RELEASE_JAVA_VERSION }}
 
       - name: Get JNI headers
@@ -121,11 +120,14 @@ jobs:
           path: src/main/resources/*
 
   release:
-    name: Test including natives and release
+    name: Test including natives and release (Java ${{ matrix.java }})
     needs:
       - javah
       - ubuntu_natives
       - mac_natives
+    strategy:
+      matrix:
+        java: [ 11, 17, 21 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -133,11 +135,11 @@ jobs:
         with:
           submodules: true
 
-      - name: Set up JDK ${{ env.RELEASE_JAVA_VERSION }}
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ env.RELEASE_JAVA_VERSION }}
+          java-version: ${{ matrix.java }}
           cache: maven
 
       - name: Download natives
@@ -164,33 +166,29 @@ jobs:
           mvn -B versions:set -DnewVersion=${VERSION:1} -DgenerateBackupPoms=false
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - name: Run Maven tests with native (if PR)
-        if: github.ref != 'refs/heads/master'
+      - name: Run Maven tests with native
         run: mvn -B verify -DperformRelease=true
 
-      - name: Run maven tests with native (if release)
-        if: github.ref == 'refs/heads/master'
-        run: mvn -B verify
-
       - name: Upload coverage report
+        if: matrix.java == env.RELEASE_JAVA_VERSION
         uses: codecov/codecov-action@v4
 
       - name: Attach final jars (if PR)
         uses: actions/upload-artifact@v4
-        if: github.ref != 'refs/heads/master'
+        if: github.ref != 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
         with:
           name: jars
           path: target/*.jar
 
       - name: Check out Jitsi Maven repository (if release)
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
         uses: actions/checkout@v4
         with:
           repository: jitsi/jitsi-maven-repository
           path: jitsi-maven-repository
 
       - name: Release to Jitsi Maven repository (if release)
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
         run: |
            mvn -B source:jar deploy \
               -DperformRelease=true \
@@ -204,8 +202,8 @@ jobs:
            git push
 
       - name: Attach final jars (after releasing to Jitsi Maven repository)
-        uses: actions/upload-artifact@v3
-        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
         with:
           name: jars
           path: target/*.jar
