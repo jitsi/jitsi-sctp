@@ -26,7 +26,7 @@ public class SctpJni {
     static {
         // Load the native library
         try {
-	    JNIUtils.loadLibrary("jnisctp", SctpJni.class.getClassLoader());
+	        JNIUtils.loadLibrary("jnisctp", SctpJni.class.getClassLoader());
             logger.info("SCTP lib loaded");
         } catch (Exception e) {
             logger.error("Error loading native library: ", e);
