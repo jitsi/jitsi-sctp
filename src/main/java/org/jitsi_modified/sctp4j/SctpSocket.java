@@ -77,7 +77,7 @@ public abstract class SctpSocket
 
     /**
      * The indicator which determines whether {@link #close()} has been invoked
-     * on this <tt>SctpSocket</tt>. It does NOT indicate whether
+     * on this <code>SctpSocket</code>. It does NOT indicate whether
      * {@link Sctp4j#closeSocket(long, long)} has been invoked with {@link #ptr}.
      */
     private boolean closed = false;
@@ -96,12 +96,12 @@ public abstract class SctpSocket
 
     /**
      * Locks {@link #ptr} for reading and returns its value if this
-     * <tt>SctpSocket</tt> has not been closed (yet). Each <tt>lockPtr</tt>
-     * method invocation must be balanced with a subsequent <tt>unlockPtr</tt>
+     * <code>SctpSocket</code> has not been closed (yet). Each <code>lockPtr</code>
+     * method invocation must be balanced with a subsequent <code>unlockPtr</code>
      * method invocation.
      *
-     * @return <tt>ptr</tt>
-     * @throws IOException if this <tt>SctpSocket</tt> has (already) been closed
+     * @return <code>ptr</code>
+     * @throws IOException if this <code>SctpSocket</code> has (already) been closed
      */
     protected long lockPtr()
         throws IOException
@@ -130,11 +130,11 @@ public abstract class SctpSocket
     }
 
     /**
-     * Unlocks {@link #ptr} for reading. If this <tt>SctpSocket</tt> has been
-     * closed while <tt>ptr</tt> was locked for reading and there are no other
-     * readers at the time of the method invocation, closes <tt>ptr</tt>. Each
-     * <tt>unlockPtr</tt> method invocation must be balanced with a previous
-     * <tt>lockPtr</tt> method invocation.
+     * Unlocks {@link #ptr} for reading. If this <code>SctpSocket</code> has been
+     * closed while <code>ptr</code> was locked for reading and there are no other
+     * readers at the time of the method invocation, closes <code>ptr</code>. Each
+     * <code>unlockPtr</code> method invocation must be balanced with a previous
+     * <code>lockPtr</code> method invocation.
      */
     protected void unlockPtr()
     {
@@ -189,7 +189,7 @@ public abstract class SctpSocket
     /**
      * Fired when usrsctp stack sends notification.
      *
-     * @param notification the <tt>SctpNotification</tt> triggered.
+     * @param notification the <code>SctpNotification</code> triggered.
      */
     private void onNotification(SctpNotification notification)
     {

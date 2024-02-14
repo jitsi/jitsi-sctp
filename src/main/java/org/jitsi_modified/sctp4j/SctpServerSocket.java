@@ -86,7 +86,7 @@ public class SctpServerSocket extends SctpSocket
      * this instance should be used for sending/receiving data on that new
      * connection.
      *
-     * @return <tt>true</tt> if we have accepted incoming connection
+     * @return <code>true</code> if we have accepted incoming connection
      *         successfully.
      */
     public boolean accept()

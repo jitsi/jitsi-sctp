@@ -63,20 +63,20 @@ public class SctpJni {
      * Connects SCTP socket to remote socket on given SCTP port.
      * @param ptr native socket pointer.
      * @param remotePort remote SCTP port.
-     * @return <tt>true</tt> if the socket has been successfully connected.
+     * @return <code>true</code> if the socket has been successfully connected.
      */
     public static native boolean usrsctp_connect(long ptr, int remotePort);
 
     /**
      * Disposes of the resources held by native counterpart.
-     * @return <tt>true</tt> if stack successfully released resources.
+     * @return <code>true</code> if stack successfully released resources.
      */
     public static native boolean usrsctp_finish();
 
     /**
      * Initializes native SCTP counterpart.
      * @param port UDP encapsulation port.
-     * @return <tt>true</tt> on success.
+     * @return <code>true</code> on success.
      */
     public static native boolean usrsctp_init(int port);
 
@@ -87,7 +87,7 @@ public class SctpJni {
     public static native void usrsctp_listen(long ptr);
 
     /**
-     * Sends given <tt>data</tt> on selected SCTP stream using given payload
+     * Sends given <code>data</code> on selected SCTP stream using given payload
      * protocol identifier.
      * FIXME add offset and length buffer parameters.
      * @param ptr native socket pointer.
@@ -97,7 +97,7 @@ public class SctpJni {
      * @param ordered should we care about message order ?
      * @param sid SCTP stream identifier
      * @param ppid payload protocol identifier
-     * @return sent bytes count or <tt>-1</tt> in case of an error.
+     * @return sent bytes count or <code>-1</code> in case of an error.
      */
     public static native int usrsctp_send(
             long ptr,

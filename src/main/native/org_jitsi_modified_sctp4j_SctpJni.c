@@ -27,7 +27,7 @@
 #define SCTP_CLASSNAME "org/jitsi_modified/sctp4j/SctpJni"
 
 /**
- * Represents the <tt>struct socket</tt> instances initialized by our SCTP
+ * Represents the <code>struct socket</code> instances initialized by our SCTP
  * integration.
  */
 typedef struct _SctpSocket
@@ -83,7 +83,7 @@ static int SCTP_EVENT_TYPES[]
         SCTP_STREAM_RESET_EVENT
     };
 
-/** The <tt>jclass</tt> with name <tt>SCTP_CLASSNAME</tt>. */
+/** The <code>jclass</code> with name <code>SCTP_CLASSNAME</code>. */
 static jclass Sctp_clazz = 0;
 static jmethodID Sctp_receiveCb = 0;
 static jmethodID Sctp_sendCb = 0;
