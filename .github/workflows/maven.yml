@@ -186,11 +186,12 @@ jobs:
         with:
           repository: jitsi/jitsi-maven-repository
           path: jitsi-maven-repository
+          sparse-checkout: releases/org/jitsi/jitsi-sctp
 
       - name: Release to Jitsi Maven repository (if release)
         if: github.ref == 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
         run: |
-           mvn -B source:jar deploy \
+           mvn -B deploy \
               -DperformRelease=true \
               -DaltDeploymentRepository=jmrs::default::file://${{ github.workspace }}/jitsi-maven-repository/releases/
            cd jitsi-maven-repository
