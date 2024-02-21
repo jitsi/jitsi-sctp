@@ -166,8 +166,8 @@ jobs:
           mvn -B versions:set -DnewVersion=${VERSION:1} -DgenerateBackupPoms=false
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - name: Run Maven tests with native
-        run: mvn -B verify -DperformRelease=true
+      - name: Build and test with Maven
+        run: mvn -B verify -DperformRelease=true -Pcoverage
 
       - name: Upload coverage report
         if: matrix.java == env.RELEASE_JAVA_VERSION
