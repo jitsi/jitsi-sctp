@@ -1,0 +1,210 @@
+name: Java CI with Maven and native builds
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  # Java version to use for the release
+  RELEASE_JAVA_VERSION: 11
+  UBUNTU_DIST: focal
+  UBUNTU_MIRROR_AMD64: http://azure.archive.ubuntu.com/ubuntu
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  javah:
+
+    runs-on: ubuntu-latest
+
+    name: Compile and generate JNI headers
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up JDK ${{ env.RELEASE_JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.RELEASE_JAVA_VERSION }}
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B compile
+
+      - name: Upload JNI headers
+        uses: actions/upload-artifact@v4
+        with:
+          name: javah
+          path: target/native
+
+  ubuntu_natives:
+    needs: javah
+    runs-on: ubuntu-latest
+    name: Ubuntu Natives (${{ matrix.arch }})
+    strategy:
+      matrix:
+        arch:
+          - amd64
+          - arm64
+          - ppc64el
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Get JNI headers
+        uses: actions/download-artifact@v4
+        with:
+          name: javah
+          path: target/native
+
+      - name: Build natives in Docker
+        run: resources/ubuntu-build-docker.sh ${{ matrix.arch }} ${{ env.UBUNTU_DIST }} ${{ env.RELEASE_JAVA_VERSION }}
+
+      - name: Upload lib as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.arch }}
+          path: src/main/resources/*
+
+  mac_natives:
+    needs: javah
+    runs-on: macos-latest
+    name: Mac Natives (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x86_64
+          - arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up JDK ${{ env.RELEASE_JAVA_VERSION }}
+        id: install_java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.RELEASE_JAVA_VERSION }}
+
+      - name: Get JNI headers
+        uses: actions/download-artifact@v4
+        with:
+          name: javah
+          path: target/native
+
+      - name: Install autotools
+        run: brew install autoconf automake libtool
+
+      - name: Build natives
+        run: resources/macos-build.sh "${{ steps.install_java.outputs.path }}" "${{ matrix.arch }}" "${{ github.workspace }}"
+
+      - name: Upload lib as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: darwin-${{ matrix.arch }}
+          path: src/main/resources/*
+
+  release:
+    name: Test including natives and release (Java ${{ matrix.java }})
+    needs:
+      - javah
+      - ubuntu_natives
+      - mac_natives
+    strategy:
+      matrix:
+        java: [ 11, 17, 21 ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      - name: Download natives
+        uses: actions/download-artifact@v4
+        with:
+          path: target
+
+      - name: Copy natives for Maven
+        run: |
+          BASEDIR=$(pwd)/src/main/resources
+          mkdir -p $BASEDIR
+          cd target
+          for dist in */*/ ; do
+            last_dir=$(basename $dist)
+            if [[ "$last_dir" =~ ^(linux|darwin) ]]; then
+              mkdir -p "$BASEDIR/$last_dir" || true
+              cp "$dist"/*.{so,dylib} "$BASEDIR/$last_dir" || true
+            fi;
+          done;
+
+      - name: Set version
+        run: |
+          VERSION=`git describe --match "v[0-9\.]*" --long --dirty --always`
+          mvn -B versions:set -DnewVersion=${VERSION:1} -DgenerateBackupPoms=false
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build and test with Maven
+        run: mvn -B verify -DperformRelease=true -Pcoverage
+
+      - name: Upload coverage report
+        if: matrix.java == env.RELEASE_JAVA_VERSION
+        uses: codecov/codecov-action@v4
+
+      - name: Attach final jars (if PR)
+        uses: actions/upload-artifact@v4
+        if: github.ref != 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
+        with:
+          name: jars
+          path: target/*.jar
+
+      - name: Check out Jitsi Maven repository (if release)
+        if: github.ref == 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
+        uses: actions/checkout@v4
+        with:
+          repository: jitsi/jitsi-maven-repository
+          path: jitsi-maven-repository
+          sparse-checkout: releases/org/jitsi/jitsi-sctp
+
+      - name: Release to Jitsi Maven repository (if release)
+        if: github.ref == 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
+        run: |
+           mvn -B deploy \
+              -DperformRelease=true \
+              -DaltDeploymentRepository=jmrs::default::file://${{ github.workspace }}/jitsi-maven-repository/releases/
+           cd jitsi-maven-repository
+           PROJECT="$(basename "${{ github.repository }}")"
+           MSG="$PROJECT $VERSION"
+           git config --global user.name jitsi-jenkins
+           git config --global user.email "jenkins@jitsi.org"
+           git commit -a -m "$MSG"
+           git push
+
+      - name: Attach final jars (after releasing to Jitsi Maven repository)
+        uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
+        with:
+          name: jars
+          path: target/*.jar
