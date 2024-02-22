@@ -187,13 +187,14 @@ jobs:
           repository: jitsi/jitsi-maven-repository
           path: jitsi-maven-repository
           sparse-checkout: releases/org/jitsi/jitsi-sctp
+          ssh-key: ${{ secrets.JITSI_JENKINS_SSH_PRIVATE_KEY }}
 
       - name: Release to Jitsi Maven repository (if release)
         if: github.ref == 'refs/heads/master' && matrix.java == env.RELEASE_JAVA_VERSION
         run: |
            mvn -B deploy \
               -DperformRelease=true \
-              -DaltDeploymentRepository=jmrs::default::file://${{ github.workspace }}/jitsi-maven-repository/releases/
+              -DaltDeploymentRepository=jmrs::file://${{ github.workspace }}/jitsi-maven-repository/releases/
            cd jitsi-maven-repository
            PROJECT="$(basename "${{ github.repository }}")"
            MSG="$PROJECT $VERSION"
