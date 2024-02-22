@@ -201,6 +201,7 @@ jobs:
            MSG="$PROJECT $VERSION"
            git config --global user.name jitsi-jenkins
            git config --global user.email "jenkins@jitsi.org"
+           git add .
            git commit -a -m "$MSG"
            git push
 
