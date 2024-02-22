@@ -172,7 +172,7 @@ jobs:
 
       - name: Upload coverage report
         if: matrix.java == env.RELEASE_JAVA_VERSION
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v3
 
       - name: Attach final jars (if PR)
         uses: actions/upload-artifact@v4
