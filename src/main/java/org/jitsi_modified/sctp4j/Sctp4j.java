@@ -39,16 +39,21 @@ public class Sctp4j {
     /**
      * https://github.com/sctplab/usrsctp/blob/master/Manual.md#usrsctp_init
      */
-    public static void init(int port)
+    public static void init(int port, int sctpDebugMask)
     {
         if (!initialized)
         {
-            SctpJni.usrsctp_init(port);
+            SctpJni.usrsctp_init(port, sctpDebugMask);
             initialized = true;
 
             SctpJni.incomingSctpDataHandler = Sctp4j::onSctpIncomingData;
             SctpJni.outgoingSctpDataHandler = Sctp4j::onOutgoingSctpData;
         }
+    }
+
+    public static void init(int port)
+    {
+        init(port, 0);
     }
 
     /**

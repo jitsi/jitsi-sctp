@@ -21,6 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define SCTP_DEBUG 1
+
 #include <usrsctp.h>
 
 /* The name of the class which defines the callback methods. */
@@ -195,7 +198,7 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1finish
  */
 JNIEXPORT jboolean JNICALL
 Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1init
-    (JNIEnv *env, jclass clazz, jint port)
+    (JNIEnv *env, jclass clazz, jint port, jint sctp_debug_mask)
 {
     /*
      * First argument is udp_encapsulation_port which is not relevant to our
@@ -206,10 +209,9 @@ Java_org_jitsi_1modified_sctp4j_SctpJni_usrsctp_1init
 
     // Note: this code MUST be called after the call to usrsctp_init, above, as part of that
     // call flow sets the debug to the default level (off)
-#ifdef SCTP_DEBUG
-    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c setting SCTP_DEBUG_ALL\n");
-    usrsctp_sysctl_set_sctp_debug_on(SCTP_DEBUG_ALL);
-#endif
+    debugSctpPrintf("=====>: org_jitsi_modified_sctp4j_SctpJni.c setting sctp_debug to %#x\n",
+                    (unsigned int)sctp_debug_mask);
+    usrsctp_sysctl_set_sctp_debug_on((uint32_t) sctp_debug_mask);
 
     /* TODO(ldixon) Consider turning this on/off. */
     usrsctp_sysctl_set_sctp_ecn_enable(0);

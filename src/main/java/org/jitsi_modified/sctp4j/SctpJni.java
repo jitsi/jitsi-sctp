@@ -76,9 +76,11 @@ public class SctpJni {
     /**
      * Initializes native SCTP counterpart.
      * @param port UDP encapsulation port.
+     * @param sctp_debug_mask SCTP debug flags to enable.  0 for none, -1 for all.
+     *                        See usrsctp code for specific values.
      * @return <code>true</code> on success.
      */
-    public static native boolean usrsctp_init(int port);
+    public static native boolean usrsctp_init(int port, int sctp_debug_mask);
 
     /**
      * Makes socket passive.
